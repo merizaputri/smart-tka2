@@ -807,12 +807,170 @@ export const INITIAL_QUESTIONS = [
             { id: 'B', text: 'blue and yellow' },
             { id: 'C', text: 'green and white' }
         ],
+    // --- AKIDAH AKHLAK ---
+    {
+        id: 'q-akidah-5-1',
+        kelas: 'Kelas 5',
+        subject: 'akidah_akhlak',
+        bab: 'Kalimat Tayyibah & Asmaul Husna',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Kalimat tayyibah "Subhanallah" diucapkan ketika melihat keindahan ciptaan Allah SWT. Arti dari kalimat tayyibah "Subhanallah" adalah ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'Maha Suci Allah' },
+            { id: 'B', text: 'Maha Besar Allah' },
+            { id: 'C', text: 'Segala Puji Bagi Allah' },
+            { id: 'D', text: 'Maha Pengasih Lagi Maha Penyayang' }
+        ],
         answerKey: 'A',
-        explanation: 'Bendera Indonesia berwarna merah dan putih ("red and white").'
+        explanation: 'Kalimat tayyibah "Subhanallah" (Tasbih) memiliki arti "Maha Suci Allah".'
+    },
+    {
+        id: 'q-akidah-5-2',
+        kelas: 'Kelas 5',
+        subject: 'akidah_akhlak',
+        bab: 'Akhlak Terpuji',
+        difficulty: 'Sedang',
+        passage: null,
+        question: 'Sikap selalu berkata jujur dan terbuka sesuai dengan keadaan yang sebenarnya dinamakan akhlak ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'Siddiq (Jujur)' },
+            { id: 'B', text: 'Amanah (Dapat Dipercaya)' },
+            { id: 'C', text: 'Tabligh (Menyampaikan)' },
+            { id: 'D', text: 'Fathanah (Cerdas)' }
+        ],
+        answerKey: 'A',
+        explanation: 'Siddiq artinya benar atau jujur, yaitu kesesuaian antara perkataan dan perbuatan.'
+    },
+
+    // --- FIQIH ---
+    {
+        id: 'q-fiqih-5-1',
+        kelas: 'Kelas 5',
+        subject: 'fiqih',
+        bab: 'Thaharah & Salat',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Rukun wudu yang pertama adalah ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'Membasuh Muka' },
+            { id: 'B', text: 'Niat' },
+            { id: 'C', text: 'Membasuh Kedua Tangan' },
+            { id: 'D', text: 'Mengusap Kepala' }
+        ],
+        answerKey: 'B',
+        explanation: 'Rukun wudu berurutan dimulai dari niat, membasuh muka, membasuh kedua tangan hingga siku, mengusap sebagian kepala, membasuh kedua kaki hingga mata kaki, dan tertib.'
+    },
+    {
+        id: 'q-fiqih-5-2',
+        kelas: 'Kelas 5',
+        subject: 'fiqih',
+        bab: 'Zakat & Sedekah',
+        difficulty: 'Sedang',
+        passage: null,
+        question: 'Zakat yang wajib dikeluarkan oleh setiap jiwa umat Islam pada bulan Ramadan sebelum salat Idul Fitri adalah ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'Zakat Maal' },
+            { id: 'B', text: 'Zakat Fitrah' },
+            { id: 'C', text: 'Sedekah Subuh' },
+            { id: 'D', text: 'Infaq Jiwa' }
+        ],
+        answerKey: 'B',
+        explanation: 'Zakat Fitrah disyariatkan untuk menyucikan jiwa setiap Muslim dan ditunaikan di bulan Ramadan hingga sebelum salat Idul Fitri.'
+    },
+
+    // --- AL-QURAN HADIS ---
+    {
+        id: 'q-quran-5-1',
+        kelas: 'Kelas 5',
+        subject: 'quran_hadis',
+        bab: 'Surah Pendek & Tajwid',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Surah Al-Ikhlas menjelaskan tentang ajaran ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'Tauhid (Keesaan Allah)' },
+            { id: 'B', text: 'Hari Kiamat' },
+            { id: 'C', text: 'Toleransi Beragama' },
+            { id: 'D', text: 'Kisah Para Nabi' }
+        ],
+        answerKey: 'A',
+        explanation: 'Surah Al-Ikhlas menegaskan kemurnian keesaan Allah SWT (Tauhid).'
+    },
+    {
+        id: 'q-quran-5-2',
+        kelas: 'Kelas 5',
+        subject: 'quran_hadis',
+        bab: 'Hadis Pilihan & Hukum Tajwid',
+        difficulty: 'Sedang',
+        passage: null,
+        question: 'Hukum bacaan Nun Sukun (نْ) atau Tanwin (ً ٍ ٌ) apabila bertemu dengan huruf Alif (أ), Ha (هـ), \'Ain (ع), Ghain (غ), Ha (ح), Khaw (خ) disebut ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'Izhar Halqi' },
+            { id: 'B', text: 'Idgham Bighunnah' },
+            { id: 'C', text: 'Iqlab' },
+            { id: 'D', text: 'Ikhfa Hakiki' }
+        ],
+        answerKey: 'A',
+        explanation: 'Izhar Halqi dibaca jelas tanpa dengung ketika Nun Sukun/Tanwin bertemu salah satu dari 6 huruf tenggorokan (Halqi).'
     }
 ];
 
 export const INITIAL_PACKAGES = [
+    {
+        id: 'pkg-sim-5-akidah',
+        name: 'Simulasi TKA Akidah Akhlak Kelas 5 - Paket Utama',
+        subject: 'akidah_akhlak',
+        kelas: 'Kelas 5',
+        mode: 'simulasi',
+        questionIds: ['q-akidah-5-1', 'q-akidah-5-2'],
+        durationMinutes: 15,
+        kkm: 75,
+        randomizeQuestions: true,
+        randomizeOptions: true,
+        showResultsToStudent: true,
+        startDate: '2026-01-01T00:00',
+        endDate: '2026-12-31T23:59',
+        instructions: 'Kerjakan soal latihan Akidah Akhlak dengan cermat dan teliti.'
+    },
+    {
+        id: 'pkg-sim-5-fiqih',
+        name: 'Simulasi TKA Fiqih Kelas 5 - Paket Utama',
+        subject: 'fiqih',
+        kelas: 'Kelas 5',
+        mode: 'simulasi',
+        questionIds: ['q-fiqih-5-1', 'q-fiqih-5-2'],
+        durationMinutes: 15,
+        kkm: 75,
+        randomizeQuestions: true,
+        randomizeOptions: true,
+        showResultsToStudent: true,
+        startDate: '2026-01-01T00:00',
+        endDate: '2026-12-31T23:59',
+        instructions: 'Kerjakan soal latihan Fiqih dengan cermat dan ikuti petunjuk.'
+    },
+    {
+        id: 'pkg-sim-5-quran',
+        name: 'Simulasi TKA Al-Qur\'an Hadis Kelas 5 - Paket Utama',
+        subject: 'quran_hadis',
+        kelas: 'Kelas 5',
+        mode: 'simulasi',
+        questionIds: ['q-quran-5-1', 'q-quran-5-2'],
+        durationMinutes: 15,
+        kkm: 75,
+        randomizeQuestions: true,
+        randomizeOptions: true,
+        showResultsToStudent: true,
+        startDate: '2026-01-01T00:00',
+        endDate: '2026-12-31T23:59',
+        instructions: 'Bacalah soal Al-Qur\'an Hadis dengan seksama sebelum memilih jawaban.'
+    },
     {
         id: 'pkg-sim-2-ing',
         name: 'Simulasi TKA Bahasa Inggris Kelas 2 - Basic Vocabulary & Expressions',

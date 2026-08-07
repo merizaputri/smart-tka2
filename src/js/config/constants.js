@@ -16,7 +16,10 @@ export const SUBJECTS = [
     { id: 'matematika', name: 'Matematika', icon: 'fa-calculator', badgeBg: 'bg-emerald-100', badgeText: 'text-emerald-700', border: 'border-emerald-200' },
     { id: 'ipas', name: 'IPAS (Ilmu Pengetahuan)', icon: 'fa-flask', badgeBg: 'bg-purple-100', badgeText: 'text-purple-700', border: 'border-purple-200' },
     { id: 'pancasila', name: 'Pendidikan Pancasila', icon: 'fa-landmark', badgeBg: 'bg-amber-100', badgeText: 'text-amber-700', border: 'border-amber-200' },
-    { id: 'inggris', name: 'Bahasa Inggris', icon: 'fa-language', badgeBg: 'bg-rose-100', badgeText: 'text-rose-700', border: 'border-rose-200' }
+    { id: 'inggris', name: 'Bahasa Inggris', icon: 'fa-language', badgeBg: 'bg-rose-100', badgeText: 'text-rose-700', border: 'border-rose-200' },
+    { id: 'akidah_akhlak', name: 'Akidah Akhlak', icon: 'fa-heart-pulse', badgeBg: 'bg-teal-100', badgeText: 'text-teal-700', border: 'border-teal-200' },
+    { id: 'fiqih', name: 'Fiqih', icon: 'fa-book-quran', badgeBg: 'bg-indigo-100', badgeText: 'text-indigo-700', border: 'border-indigo-200' },
+    { id: 'quran_hadis', name: 'Al-Qur\'an Hadis', icon: 'fa-mosque', badgeBg: 'bg-sky-100', badgeText: 'text-sky-700', border: 'border-sky-200' }
 ];
 
 export const EXAM_MODES = {
