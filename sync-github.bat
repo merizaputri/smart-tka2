@@ -1,5 +1,5 @@
 @echo off
-title Sync Project ke GitHub (merizaputri/smart-tka)
+title Sync Project ke GitHub (merizaputri/smart-tka2)
 color 0A
 
 :: Tambahkan path Git jika belum ada di PATH
@@ -7,7 +7,7 @@ set "PATH=%PATH%;C:\Users\meriza.putri\AppData\Local\Programs\Git\cmd;C:\Program
 
 echo ========================================================
 echo   Auto Sync Projek TKA Smart Exam ke GitHub
-echo   Repository: https://github.com/merizaputri/smart-tka.git
+echo   Repository: https://github.com/merizaputri/smart-tka2.git
 echo ========================================================
 echo.
 
@@ -26,11 +26,11 @@ if not exist ".git" (
     echo [1/4] Menginisialisasi Git Repository...
     git init
     git branch -M main
-    git remote add origin https://github.com/merizaputri/smart-tka.git
+    git remote add origin https://github.com/merizaputri/smart-tka2.git
     echo [OK] Git berhasil diinisialisasi!
 ) else (
     echo [1/4] Memeriksa Remote Repository...
-    git remote set-url origin https://github.com/merizaputri/smart-tka.git
+    git remote set-url origin https://github.com/merizaputri/smart-tka2.git
 )
 
 echo.
@@ -53,7 +53,7 @@ if %errorlevel% equ 0 (
     echo.
     echo ========================================================
     echo   [BERHASIL!] Projek berhasil di-sync ke GitHub!
-    echo   Link: https://github.com/merizaputri/smart-tka
+    echo   Link: https://github.com/merizaputri/smart-tka2
     echo ========================================================
 ) else (
     echo.
