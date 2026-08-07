@@ -1,0 +1,23 @@
+{
+  "name": "tka-smart-exam",
+  "version": "1.0.0",
+  "description": "Aplikasi CBT Latihan Tes Kemampuan Akademik (TKA) SD Kelas 2 - 6",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "cbt",
+    "tka",
+    "exam",
+    "sd"
+  ],
+  "author": "DeepMind Agent",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "mysql2": "^3.23.2"
+  }
+}
