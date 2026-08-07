@@ -209,11 +209,15 @@ app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Start Server
-app.listen(PORT, HOST, () => {
-    console.log(`\n==================================================`);
-    console.log(`🚀 TKA Smart Exam CBT Express Server Running!`);
-    console.log(`📍 URL: http://${HOST}:${PORT}`);
-    console.log(`🗄️  MySQL API Endpoints Available at http://${HOST}:${PORT}/api/health`);
-    console.log(`==================================================\n`);
-});
+// Export app for Vercel / serverless deployment
+module.exports = app;
+
+if (require.main === module) {
+    app.listen(PORT, HOST, () => {
+        console.log(`\n==================================================`);
+        console.log(`🚀 TKA Smart Exam CBT Express Server Running!`);
+        console.log(`📍 URL: http://${HOST}:${PORT}`);
+        console.log(`🗄️  MySQL API Endpoints Available at http://${HOST}:${PORT}/api/health`);
+        console.log(`==================================================\n`);
+    });
+}
