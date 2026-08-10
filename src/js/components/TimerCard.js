@@ -25,10 +25,9 @@ export class TimerCard {
     }
 
     update() {
-        if (this.isFinished) return;
-
         const now = Date.now();
-        const diffMs = this.endTime - now;
+        const endTimeNum = Number(this.endTime) || (now + 15 * 60 * 1000);
+        const diffMs = endTimeNum - now;
         const remainingSec = Math.max(0, Math.floor(diffMs / 1000));
 
         const hours = Math.floor(remainingSec / 3600);
@@ -49,7 +48,11 @@ export class TimerCard {
         let iconAnim = "";
         let alertBadge = "";
 
-        if (remainingSec <= 60) {
+        if (remainingSec <= 0) {
+            bgStyle = "bg-red-900 text-white border-red-700 shadow-md";
+            iconAnim = "";
+            alertBadge = `<span class="text-[11px] bg-red-800 text-white px-2 py-0.5 rounded-full font-bold uppercase">Waktu Habis</span>`;
+        } else if (remainingSec <= 60) {
             // Under 1 minute: Critical Red Flashing Pulse
             bgStyle = "timer-warning-critical text-white border-red-600";
             iconAnim = "fa-spin";
