@@ -271,6 +271,8 @@ export function renderExamEnginePage(container, currentUser, onFinishExam) {
                 if (onFinishExam) onFinishExam(result);
             });
             timerCard.start();
+        } else {
+            timerCard.update();
         }
 
         // Attach Option Selection Handlers

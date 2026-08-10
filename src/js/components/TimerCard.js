@@ -2,6 +2,7 @@
 
 export class TimerCard {
     constructor(containerId, endTime, onTimeUp) {
+        this.containerId = containerId;
         this.container = document.getElementById(containerId);
         this.endTime = endTime;
         this.onTimeUp = onTimeUp;
@@ -60,8 +61,9 @@ export class TimerCard {
             alertBadge = `<span class="text-[11px] bg-amber-700 text-amber-100 px-2 py-0.5 rounded-full font-semibold">Sisa < 5 Menit</span>`;
         }
 
-        if (this.container) {
-            this.container.innerHTML = `
+        const targetContainer = document.getElementById(this.containerId) || this.container;
+        if (targetContainer) {
+            targetContainer.innerHTML = `
                 <div class="flex items-center gap-3 px-4 py-2.5 rounded-xl border ${bgStyle} shadow-lg transition-all duration-300">
                     <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-black/20 text-white">
                         <i class="fa-solid fa-hourglass-half ${iconAnim}"></i>
