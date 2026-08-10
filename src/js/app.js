@@ -17,16 +17,22 @@ class App {
     }
 
     init() {
-        // Check stored session
-        this.currentUser = storageService.getCurrentUser();
+        try {
+            // Check stored session
+            this.currentUser = storageService.getCurrentUser();
 
-        // Check if there is an ongoing CBT Exam Session
-        const activeExam = storageService.getActiveExamSession();
-        if (this.currentUser && activeExam && activeExam.studentId === this.currentUser.id) {
-            this.currentView = 'exam-engine';
-        } else if (this.currentUser) {
-            this.currentView = this.currentUser.role === 'admin' ? 'admin-dashboard' : 'student-dashboard';
-        } else {
+            // Check if there is an ongoing CBT Exam Session
+            const activeExam = storageService.getActiveExamSession();
+            if (this.currentUser && activeExam && activeExam.studentId === this.currentUser.id) {
+                this.currentView = 'exam-engine';
+            } else if (this.currentUser) {
+                this.currentView = this.currentUser.role === 'admin' ? 'admin-dashboard' : 'student-dashboard';
+            } else {
+                this.currentView = 'login';
+            }
+        } catch (e) {
+            console.error("App Init Error:", e);
+            localStorage.removeItem('tka_active_exam_v1');
             this.currentView = 'login';
         }
 
@@ -51,84 +57,96 @@ class App {
         const appView = document.getElementById('app-view');
         if (!appView) return;
 
-        // Render Navbar Header
-        renderNavbar(
-            this.currentUser,
-            this.currentView,
-            (targetView) => this.navigateTo(targetView),
-            () => this.logout()
-        );
+        try {
+            // Render Navbar Header
+            renderNavbar(
+                this.currentUser,
+                this.currentView,
+                (targetView) => this.navigateTo(targetView),
+                () => this.logout()
+            );
 
-        // Hide navbar during active exam session for full immersion CBT
-        const navbarContainer = document.getElementById('navbar-container');
-        if (navbarContainer) {
-            if (this.currentView === 'exam-engine') {
-                navbarContainer.style.display = 'none';
-            } else {
-                navbarContainer.style.display = 'block';
-            }
-        }
-
-        // View Router
-        switch (this.currentView) {
-            case 'login':
-                renderLoginPage(appView, (user) => {
-                    this.currentUser = user;
-                    this.navigateTo(user.role === 'admin' ? 'admin-dashboard' : 'student-dashboard');
-                });
-                break;
-
-            case 'student-dashboard':
-                if (!this.currentUser) return this.navigateTo('login');
-                renderStudentDashboardPage(
-                    appView,
-                    this.currentUser,
-                    (targetView) => this.navigateTo(targetView),
-                    (resultObj) => this.navigateTo('result-page', resultObj)
-                );
-                break;
-
-            case 'exam-menu':
-                if (!this.currentUser) return this.navigateTo('login');
-                renderExamMenuPage(
-                    appView,
-                    this.currentUser,
-                    (session) => this.navigateTo('exam-engine', session)
-                );
-                break;
-
-            case 'exam-engine':
-                if (!this.currentUser) return this.navigateTo('login');
-                renderExamEnginePage(
-                    appView,
-                    this.currentUser,
-                    (resultObj) => this.navigateTo('result-page', resultObj)
-                );
-                break;
-
-            case 'result-page':
-                if (!this.currentUser) return this.navigateTo('login');
-                renderResultPage(
-                    appView,
-                    this.viewStateData,
-                    (targetView) => this.navigateTo(targetView)
-                );
-                break;
-
-            case 'admin-dashboard':
-                if (!this.currentUser || this.currentUser.role !== 'admin') {
-                    return this.navigateTo('login');
+            // Hide navbar during active exam session for full immersion CBT
+            const navbarContainer = document.getElementById('navbar-container');
+            if (navbarContainer) {
+                if (this.currentView === 'exam-engine') {
+                    navbarContainer.style.display = 'none';
+                } else {
+                    navbarContainer.style.display = 'block';
                 }
-                renderAdminDashboardPage(
-                    appView,
-                    this.currentUser,
-                    (targetView) => this.navigateTo(targetView)
-                );
-                break;
+            }
 
-            default:
-                this.navigateTo('login');
-                break;
+            // View Router
+            switch (this.currentView) {
+                case 'login':
+                    renderLoginPage(appView, (user) => {
+                        this.currentUser = user;
+                        this.navigateTo(user.role === 'admin' ? 'admin-dashboard' : 'student-dashboard');
+                    });
+                    break;
+
+                case 'student-dashboard':
+                    if (!this.currentUser) return this.navigateTo('login');
+                    renderStudentDashboardPage(
+                        appView,
+                        this.currentUser,
+                        (targetView) => this.navigateTo(targetView),
+                        (resultObj) => this.navigateTo('result-page', resultObj)
+                    );
+                    break;
+
+                case 'exam-menu':
+                    if (!this.currentUser) return this.navigateTo('login');
+                    renderExamMenuPage(
+                        appView,
+                        this.currentUser,
+                        (session) => this.navigateTo('exam-engine', session)
+                    );
+                    break;
+
+                case 'exam-engine':
+                    if (!this.currentUser) return this.navigateTo('login');
+                    renderExamEnginePage(
+                        appView,
+                        this.currentUser,
+                        (resultObj) => this.navigateTo('result-page', resultObj)
+                    );
+                    break;
+
+                case 'result-page':
+                    if (!this.currentUser) return this.navigateTo('login');
+                    renderResultPage(
+                        appView,
+                        this.viewStateData,
+                        (targetView) => this.navigateTo(targetView)
+                    );
+                    break;
+
+                case 'admin-dashboard':
+                    if (!this.currentUser || this.currentUser.role !== 'admin') {
+                        return this.navigateTo('login');
+                    }
+                    renderAdminDashboardPage(
+                        appView,
+                        this.currentUser,
+                        (targetView) => this.navigateTo(targetView)
+                    );
+                    break;
+
+                default:
+                    this.navigateTo('login');
+                    break;
+            }
+        } catch (err) {
+            console.error("App Render Error, auto-recovering:", err);
+            localStorage.removeItem('tka_active_exam_v1');
+            if (this.currentUser) {
+                this.currentView = this.currentUser.role === 'admin' ? 'admin-dashboard' : 'student-dashboard';
+                renderStudentDashboardPage(appView, this.currentUser, (tv) => this.navigateTo(tv), (res) => this.navigateTo('result-page', res));
+            } else {
+                this.currentView = 'login';
+                renderLoginPage(appView, (u) => { this.currentUser = u; this.navigateTo(u.role === 'admin' ? 'admin-dashboard' : 'student-dashboard'); });
+            }
         }
     }
 }
