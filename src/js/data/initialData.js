@@ -850,6 +850,58 @@ export const INITIAL_QUESTIONS = [
 
     // --- FIQIH ---
     {
+        id: 'q-fiqih-2-1',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Rukun Islam & Salat Wajib',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Jumlah salat fardhu (wajib) yang dikerjakan oleh umat Islam dalam sehari semalam adalah ....',
+        image: null,
+        options: [
+            { id: 'A', text: '3 waktu' },
+            { id: 'B', text: '5 waktu' },
+            { id: 'C', text: '7 waktu' }
+        ],
+        answerKey: 'B',
+        explanation: 'Salat wajib bagi umat Islam terdiri dari 5 waktu yaitu Subuh, Zuhur, Asar, Magrib, dan Isya.'
+    },
+    {
+        id: 'q-fiqih-3-1',
+        kelas: 'Kelas 3',
+        subject: 'fiqih',
+        bab: 'Syarat & Rukun Salat',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Menutup aurat dan suci dari hadas kecil maupun besar merupakan ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'Syarat Sah Salat' },
+            { id: 'B', text: 'Sunah Salat' },
+            { id: 'C', text: 'Batal Salat' }
+        ],
+        answerKey: 'A',
+        explanation: 'Syarat sah salat adalah hal-hal yang harus dipenuhi sebelum melaksanakan salat, seperti suci dari hadas dan menutup aurat.'
+    },
+    {
+        id: 'q-fiqih-4-1',
+        kelas: 'Kelas 4',
+        subject: 'fiqih',
+        bab: 'Bersuci (Tayamum)',
+        difficulty: 'Sedang',
+        passage: null,
+        question: 'Bersuci menggunakan debu yang suci sebagai pengganti wudu ketika tidak ada air disebut ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'Mandi Wajib' },
+            { id: 'B', text: 'Tayamum' },
+            { id: 'C', text: 'Istinja' },
+            { id: 'D', text: 'Wudu' }
+        ],
+        answerKey: 'B',
+        explanation: 'Tayamum adalah keringanan bersuci menggunakan debu yang suci apabila tidak ditemukan air atau sedang sakit.'
+    },
+    {
         id: 'q-fiqih-5-1',
         kelas: 'Kelas 5',
         subject: 'fiqih',
@@ -884,6 +936,24 @@ export const INITIAL_QUESTIONS = [
         ],
         answerKey: 'B',
         explanation: 'Zakat Fitrah disyariatkan untuk menyucikan jiwa setiap Muslim dan ditunaikan di bulan Ramadan hingga sebelum salat Idul Fitri.'
+    },
+    {
+        id: 'q-fiqih-6-1',
+        kelas: 'Kelas 6',
+        subject: 'fiqih',
+        bab: 'Makanan & Minuman Halal',
+        difficulty: 'Sedang',
+        passage: null,
+        question: 'Daging hewan yang sembelihannya tidak menyebut nama Allah SWT hukum mengonsumsinya adalah ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'Halal' },
+            { id: 'B', text: 'Haram' },
+            { id: 'C', text: 'Makruh' },
+            { id: 'D', text: 'Mubah' }
+        ],
+        answerKey: 'B',
+        explanation: 'Syarat kehalalan daging hewan sembelihan adalah disembelih dengan menyebut nama Allah SWT.'
     },
 
     // --- AL-QURAN HADIS ---
@@ -957,6 +1027,22 @@ export const INITIAL_PACKAGES = [
         startDate: '2026-01-01T00:00',
         endDate: '2026-12-31T23:59',
         instructions: 'Kerjakan soal latihan Fiqih dengan cermat dan ikuti petunjuk.'
+    },
+    {
+        id: 'pkg-sim-2-fiqih',
+        name: 'Simulasi TKA Fiqih Kelas 2 - Rukun Islam & Salat Wajib',
+        subject: 'fiqih',
+        kelas: 'Kelas 2',
+        mode: 'simulasi',
+        questionIds: ['q-fiqih-2-1'],
+        durationMinutes: 15,
+        kkm: 70,
+        randomizeQuestions: true,
+        randomizeOptions: true,
+        showResultsToStudent: true,
+        startDate: '2026-01-01T00:00',
+        endDate: '2026-12-31T23:59',
+        instructions: 'Kerjakan latihan Fiqih Kelas 2 dengan teliti.'
     },
     {
         id: 'pkg-sim-5-quran',
