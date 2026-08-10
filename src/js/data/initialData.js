@@ -807,6 +807,9 @@ export const INITIAL_QUESTIONS = [
             { id: 'B', text: 'blue and yellow' },
             { id: 'C', text: 'green and white' }
         ],
+        answerKey: 'A',
+        explanation: 'Bendera negara Indonesia berwarna merah dan putih (red and white).'
+    },
     // --- AKIDAH AKHLAK ---
     {
         id: 'q-akidah-5-1',
