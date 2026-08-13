@@ -272,7 +272,21 @@ export const storageService = {
     // --- QUESTIONS CRUD ---
     getQuestions() {
         try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEYS.QUESTIONS)) || [];
+            const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.QUESTIONS)) || [];
+            return raw.map(q => {
+                let opts = q.options;
+                if (typeof opts === 'string') {
+                    try {
+                        opts = JSON.parse(opts);
+                        if (typeof opts === 'string') opts = JSON.parse(opts);
+                    } catch (e) { opts = []; }
+                }
+                return {
+                    ...q,
+                    options: Array.isArray(opts) ? opts : [],
+                    answerKey: q.answerKey || q.answer_key || 'A'
+                };
+            });
         } catch (e) {
             return [];
         }

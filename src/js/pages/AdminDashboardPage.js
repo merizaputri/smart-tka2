@@ -255,7 +255,8 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                             <tbody class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                                 ${filteredQuestions.map((q, idx) => {
                                     const subj = SUBJECTS.find(s => s.id === q.subject) || { name: q.subject };
-                                    const correctOpt = q.options ? q.options.find(o => o.id === q.answerKey) : null;
+                                    const opts = Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? (JSON.parse(q.options) || []) : []);
+                                    const correctOpt = opts.find(o => o && o.id === q.answerKey);
                                     return `
                                         <tr class="hover:bg-slate-50/80 transition-colors">
                                             <td class="py-3.5 px-4 text-center font-outfit font-bold text-slate-600 align-top">
@@ -276,7 +277,7 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                                             </td>
                                             <td class="py-3.5 px-4 text-center align-top">
                                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs">
-                                                    <i class="fa-solid fa-key text-emerald-600"></i> ${q.answerKey} ${correctOpt ? `(${correctOpt.text})` : ''}
+                                                    <i class="fa-solid fa-key text-emerald-600"></i> ${q.answerKey} ${correctOpt ? `(${correctOpt.text || ''})` : ''}
                                                 </span>
                                             </td>
                                             <td class="py-3.5 px-4 text-right space-x-1 align-top">
@@ -298,6 +299,7 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                     <div class="space-y-4">
                         ${filteredQuestions.map((q, idx) => {
                             const subj = SUBJECTS.find(s => s.id === q.subject) || { name: q.subject };
+                            const opts = Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? (JSON.parse(q.options) || []) : []);
                             return `
                                 <div class="border border-slate-200 rounded-2xl p-4 sm:p-5 hover:border-brand-300 transition-all bg-slate-50/50">
                                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-slate-200/80">
@@ -335,9 +337,9 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                                     ${renderQuestionMedia(q.image, 'max-h-40 sm:max-h-56 object-contain rounded-lg mb-3 max-w-full')}
 
                                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs mb-3">
-                                        ${q.options.map(opt => `
+                                        ${opts.map(opt => `
                                             <div class="p-2.5 rounded-xl border ${opt.id === q.answerKey ? 'bg-emerald-100 border-emerald-400 font-bold text-emerald-900' : 'bg-white border-slate-200 text-slate-700'}">
-                                                <strong>${opt.id}.</strong> ${opt.text}
+                                                <strong>${opt.id}.</strong> ${opt.text || ''}
                                             </div>
                                         `).join('')}
                                     </div>

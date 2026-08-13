@@ -126,8 +126,17 @@ if (isRoute('/api/questions', $request_uri)) {
             $stmt = $pdo->query("SELECT * FROM questions ORDER BY created_at DESC");
             $rows = $stmt->fetchAll();
             foreach ($rows as &$q) {
-                $q['options'] = is_string($q['options']) ? json_decode($q['options'], true) : $q['options'];
-                $q['answerKey'] = $q['answer_key'];
+                $opts = $q['options'];
+                if (is_string($opts)) {
+                    $decoded = json_decode($opts, true);
+                    if (is_string($decoded)) {
+                        $decoded = json_decode($decoded, true);
+                    }
+                    $q['options'] = is_array($decoded) ? $decoded : [];
+                } else {
+                    $q['options'] = is_array($opts) ? $opts : [];
+                }
+                $q['answerKey'] = $q['answer_key'] ?? ($q['answerKey'] ?? 'A');
             }
             echo json_encode($rows, JSON_UNESCAPED_UNICODE);
         } catch (PDOException $e) {
