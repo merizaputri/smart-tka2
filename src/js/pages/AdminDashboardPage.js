@@ -491,8 +491,8 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
 
         // Add Siswa
         document.getElementById('btn-add-siswa')?.addEventListener('click', () => {
-            renderStudentModal(null, (newStudentData) => {
-                storageService.saveUser(newStudentData);
+            renderStudentModal(null, async (newStudentData) => {
+                await storageService.saveUser(newStudentData);
                 renderView();
             });
         });
@@ -504,8 +504,8 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                 const users = storageService.getUsers();
                 const studentToEdit = users.find(u => u.id === id);
                 if (studentToEdit) {
-                    renderStudentModal(studentToEdit, (updatedStudentData) => {
-                        storageService.saveUser(updatedStudentData);
+                    renderStudentModal(studentToEdit, async (updatedStudentData) => {
+                        await storageService.saveUser(updatedStudentData);
                         renderView();
                     });
                 }
@@ -514,10 +514,10 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
 
         // Delete Siswa
         container.querySelectorAll('[data-delete-user]').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-delete-user');
                 if (confirm("Hapus siswa ini?")) {
-                    storageService.deleteUser(id);
+                    await storageService.deleteUser(id);
                     renderView();
                 }
             });
@@ -525,8 +525,8 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
 
         // Import Siswa Modal
         document.getElementById('btn-import-siswa')?.addEventListener('click', () => {
-            renderImportStudentsModal((importedList) => {
-                const count = storageService.importUsers(importedList);
+            renderImportStudentsModal(async (importedList) => {
+                const count = await storageService.importUsers(importedList);
                 alert(`Berhasil mengimport ${count} data siswa!`);
                 renderView();
             });
@@ -534,8 +534,8 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
 
         // Add Soal
         document.getElementById('btn-add-soal')?.addEventListener('click', () => {
-            renderQuestionModal(null, (newQuestionData) => {
-                storageService.saveQuestion(newQuestionData);
+            renderQuestionModal(null, async (newQuestionData) => {
+                await storageService.saveQuestion(newQuestionData);
                 renderView();
             });
         });
@@ -547,8 +547,8 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                 const questions = storageService.getQuestions();
                 const questionToEdit = questions.find(q => q.id === id);
                 if (questionToEdit) {
-                    renderQuestionModal(questionToEdit, (updatedData) => {
-                        storageService.saveQuestion(updatedData);
+                    renderQuestionModal(questionToEdit, async (updatedData) => {
+                        await storageService.saveQuestion(updatedData);
                         renderView();
                     });
                 }
@@ -557,10 +557,10 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
 
         // Delete Soal
         container.querySelectorAll('[data-delete-question]').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-delete-question');
                 if (confirm("Hapus soal ini dari bank soal?")) {
-                    storageService.deleteQuestion(id);
+                    await storageService.deleteQuestion(id);
                     renderView();
                 }
             });
@@ -569,8 +569,8 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
         // Add Paket
         document.getElementById('btn-add-paket')?.addEventListener('click', () => {
             const allQuestions = storageService.getQuestions();
-            renderPackageModal(null, allQuestions, (newPackageData) => {
-                storageService.savePackage(newPackageData);
+            renderPackageModal(null, allQuestions, async (newPackageData) => {
+                await storageService.savePackage(newPackageData);
                 renderView();
             });
         });
@@ -583,8 +583,8 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                 const pkgToEdit = packages.find(p => p.id === id);
                 if (pkgToEdit) {
                     const allQuestions = storageService.getQuestions();
-                    renderPackageModal(pkgToEdit, allQuestions, (updatedPackageData) => {
-                        storageService.savePackage(updatedPackageData);
+                    renderPackageModal(pkgToEdit, allQuestions, async (updatedPackageData) => {
+                        await storageService.savePackage(updatedPackageData);
                         renderView();
                     });
                 }
@@ -593,10 +593,10 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
 
         // Delete Paket
         container.querySelectorAll('[data-delete-package]').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-delete-package');
                 if (confirm("Hapus paket ujian ini?")) {
-                    storageService.deletePackage(id);
+                    await storageService.deletePackage(id);
                     renderView();
                 }
             });

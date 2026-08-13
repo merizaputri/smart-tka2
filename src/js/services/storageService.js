@@ -76,70 +76,75 @@ export const storageService = {
                 fetch('/api/results')
             ]);
 
+            // 1. Sync Users
             if (usersRes.ok) {
                 const users = await usersRes.json();
-                if (users.length > 0) {
+                if (Array.isArray(users) && users.length > 0) {
                     localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
                 } else {
                     const localUsers = this.getUsers();
-                    localUsers.forEach(u => {
-                        fetch('/api/users', {
+                    for (const u of localUsers) {
+                        await fetch('/api/users', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(u)
                         }).catch(() => {});
-                    });
+                    }
                 }
             }
 
+            // 2. Sync Questions
             if (questionsRes.ok) {
                 const dbQuestions = await questionsRes.json();
-                const dbQuestionIds = new Set(dbQuestions.map(q => q.id));
-                const localQuestions = this.getQuestions();
-
-                localQuestions.forEach(q => {
-                    if (!dbQuestionIds.has(q.id)) {
-                        fetch('/api/questions', {
+                if (Array.isArray(dbQuestions) && dbQuestions.length > 0) {
+                    localStorage.setItem(STORAGE_KEYS.QUESTIONS, JSON.stringify(dbQuestions));
+                } else {
+                    const localQuestions = this.getQuestions();
+                    for (const q of localQuestions) {
+                        await fetch('/api/questions', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(q)
                         }).catch(() => {});
                     }
-                });
-
-                const combinedMap = new Map();
-                localQuestions.forEach(q => combinedMap.set(q.id, q));
-                dbQuestions.forEach(q => combinedMap.set(q.id, q));
-                localStorage.setItem(STORAGE_KEYS.QUESTIONS, JSON.stringify(Array.from(combinedMap.values())));
+                }
             }
 
+            // 3. Sync Packages
             if (packagesRes.ok) {
                 const dbPackages = await packagesRes.json();
-                const dbPackageIds = new Set(dbPackages.map(p => p.id));
-                const localPackages = this.getPackages();
-
-                localPackages.forEach(p => {
-                    if (!dbPackageIds.has(p.id)) {
-                        fetch('/api/packages', {
+                if (Array.isArray(dbPackages) && dbPackages.length > 0) {
+                    localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(dbPackages));
+                } else {
+                    const localPackages = this.getPackages();
+                    for (const p of localPackages) {
+                        await fetch('/api/packages', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(p)
                         }).catch(() => {});
                     }
-                });
-
-                const combinedMap = new Map();
-                localPackages.forEach(p => combinedMap.set(p.id, p));
-                dbPackages.forEach(p => combinedMap.set(p.id, p));
-                localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(Array.from(combinedMap.values())));
+                }
             }
 
+            // 4. Sync Results
             if (resultsRes.ok) {
-                const results = await resultsRes.json();
-                if (results.length > 0) localStorage.setItem(STORAGE_KEYS.RESULTS, JSON.stringify(results));
+                const dbResults = await resultsRes.json();
+                if (Array.isArray(dbResults) && dbResults.length > 0) {
+                    localStorage.setItem(STORAGE_KEYS.RESULTS, JSON.stringify(dbResults));
+                } else {
+                    const localResults = this.getResults();
+                    for (const r of localResults) {
+                        await fetch('/api/results', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(r)
+                        }).catch(() => {});
+                    }
+                }
             }
         } catch (e) {
-            // MySQL server unreachable, silently fallback to localStorage
+            // MySQL server unreachable, fallback silently to localStorage
         }
     },
 
@@ -180,7 +185,7 @@ export const storageService = {
         }
     },
 
-    saveUser(user) {
+    async saveUser(user) {
         const users = this.getUsers();
         if (user.id) {
             const index = users.findIndex(u => u.id === user.id);
@@ -193,28 +198,32 @@ export const storageService = {
         }
         localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
 
-        // Sync to MySQL API in background
-        fetch('/api/users', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(user)
-        }).catch(() => {});
+        // Sync to MySQL API
+        try {
+            await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(user)
+            });
+        } catch (e) {}
 
         return user;
     },
 
-    deleteUser(id) {
+    async deleteUser(id) {
         const users = this.getUsers().filter(u => u.id !== id);
         localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
 
-        // Sync to MySQL API in background
-        fetch(`/api/users/${id}`, { method: 'DELETE' }).catch(() => {});
+        // Sync to MySQL API
+        try {
+            await fetch(`/api/users/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        } catch (e) {}
     },
 
-    importUsers(userList) {
+    async importUsers(userList) {
         const currentUsers = this.getUsers();
         let addedCount = 0;
-        userList.forEach(newUser => {
+        for (const newUser of userList) {
             if (newUser.name && newUser.nisn) {
                 const exists = currentUsers.some(u => u.nisn === newUser.nisn);
                 if (!exists) {
@@ -230,15 +239,17 @@ export const storageService = {
                     currentUsers.push(uObj);
                     addedCount++;
 
-                    // Sync each to MySQL API
-                    fetch('/api/users', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(uObj)
-                    }).catch(() => {});
+                    // Sync to MySQL API
+                    try {
+                        await fetch('/api/users', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(uObj)
+                        });
+                    } catch (e) {}
                 }
             }
-        });
+        }
         localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(currentUsers));
         return addedCount;
     },
@@ -252,7 +263,7 @@ export const storageService = {
         }
     },
 
-    saveQuestion(question) {
+    async saveQuestion(question) {
         const questions = this.getQuestions();
         if (question.id) {
             const index = questions.findIndex(q => q.id === question.id);
@@ -263,22 +274,26 @@ export const storageService = {
         }
         localStorage.setItem(STORAGE_KEYS.QUESTIONS, JSON.stringify(questions));
 
-        // Sync to MySQL API in background
-        fetch('/api/questions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(question)
-        }).catch(() => {});
+        // Sync to MySQL API
+        try {
+            await fetch('/api/questions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(question)
+            });
+        } catch (e) {}
 
         return question;
     },
 
-    deleteQuestion(id) {
+    async deleteQuestion(id) {
         const questions = this.getQuestions().filter(q => q.id !== id);
         localStorage.setItem(STORAGE_KEYS.QUESTIONS, JSON.stringify(questions));
 
-        // Sync to MySQL API in background
-        fetch(`/api/questions/${id}`, { method: 'DELETE' }).catch(() => {});
+        // Sync to MySQL API
+        try {
+            await fetch(`/api/questions/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        } catch (e) {}
     },
 
     // --- PACKAGES CRUD ---
@@ -290,7 +305,7 @@ export const storageService = {
         }
     },
 
-    savePackage(pkg) {
+    async savePackage(pkg) {
         const packages = this.getPackages();
         if (pkg.id) {
             const index = packages.findIndex(p => p.id === pkg.id);
@@ -301,22 +316,26 @@ export const storageService = {
         }
         localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(packages));
 
-        // Sync to MySQL API in background
-        fetch('/api/packages', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(pkg)
-        }).catch(() => {});
+        // Sync to MySQL API
+        try {
+            await fetch('/api/packages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(pkg)
+            });
+        } catch (e) {}
 
         return pkg;
     },
 
-    deletePackage(id) {
+    async deletePackage(id) {
         const packages = this.getPackages().filter(p => p.id !== id);
         localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(packages));
 
-        // Sync to MySQL API in background
-        fetch(`/api/packages/${id}`, { method: 'DELETE' }).catch(() => {});
+        // Sync to MySQL API
+        try {
+            await fetch(`/api/packages/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        } catch (e) {}
     },
 
     // --- CBT ACTIVE EXAM SESSION & TIMER PERSISTENCE ---
@@ -466,7 +485,7 @@ export const storageService = {
         localStorage.setItem(STORAGE_KEYS.RESULTS, JSON.stringify(results));
         localStorage.removeItem(STORAGE_KEYS.ACTIVE_EXAM);
 
-        // Sync to MySQL API in background
+        // Sync to MySQL API
         fetch('/api/results', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -487,6 +506,15 @@ export const storageService = {
 
     getResultsByStudent(studentId) {
         return this.getResults().filter(r => r.studentId === studentId);
+    },
+
+    async deleteResult(id) {
+        const results = this.getResults().filter(r => r.id !== id);
+        localStorage.setItem(STORAGE_KEYS.RESULTS, JSON.stringify(results));
+
+        try {
+            await fetch(`/api/results/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        } catch (e) {}
     }
 };
 
