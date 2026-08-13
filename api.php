@@ -1,8 +1,9 @@
 <?php
 // REST API Backend for TKA Smart Exam (PHP + MySQL)
+// Compatible with CWP (Control Web Panel), Shared Hosting, and Vercel
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Content-Type: application/json; charset=UTF-8");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -43,6 +44,14 @@ function isRoute($path, $request_uri) {
     return strpos($request_uri, $path) !== false;
 }
 
+// Helper to check if request is a DELETE operation (supports HTTP DELETE or POST with action=delete)
+function isDeleteAction($method, $input) {
+    if ($method === 'DELETE') return true;
+    if (isset($input['action']) && strtolower($input['action']) === 'delete') return true;
+    if (isset($input['_method']) && strtoupper($input['_method']) === 'DELETE') return true;
+    return false;
+}
+
 // 1. Health Check
 if (isRoute('/api/health', $request_uri)) {
     echo json_encode(['status' => 'ok', 'mysql' => true, 'message' => 'Terhubung ke database MySQL (PHP Backend)!']);
@@ -61,6 +70,27 @@ if (isRoute('/api/users', $request_uri)) {
         }
         exit();
     }
+
+    // Handle DELETE user
+    if (isDeleteAction($method, $input)) {
+        preg_match('/\/users\/([^\/\?]+)/', $request_uri, $matches);
+        $id = (isset($matches[1]) && strlen($matches[1]) > 0) ? urldecode($matches[1]) : ($input['id'] ?? ($_GET['id'] ?? ''));
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['error' => 'User ID required']);
+            exit();
+        }
+        try {
+            $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(['success' => true]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit();
+    }
+
     if ($method === 'POST') {
         $id = $input['id'] ?? ('u-std-' . round(microtime(true) * 1000));
         $nisn = $input['nisn'] ?? '';
@@ -87,24 +117,6 @@ if (isRoute('/api/users', $request_uri)) {
         }
         exit();
     }
-    if ($method === 'DELETE') {
-        preg_match('/\/api\/users\/(.+)/', $request_uri, $matches);
-        $id = isset($matches[1]) ? urldecode($matches[1]) : ($input['id'] ?? '');
-        if (!$id) {
-            http_response_code(400);
-            echo json_encode(['error' => 'User ID required']);
-            exit();
-        }
-        try {
-            $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-            $stmt->execute([$id]);
-            echo json_encode(['success' => true]);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
-        }
-        exit();
-    }
 }
 
 // 3. QUESTIONS CRUD
@@ -124,6 +136,27 @@ if (isRoute('/api/questions', $request_uri)) {
         }
         exit();
     }
+
+    // Handle DELETE question
+    if (isDeleteAction($method, $input)) {
+        preg_match('/\/questions\/([^\/\?]+)/', $request_uri, $matches);
+        $id = (isset($matches[1]) && strlen($matches[1]) > 0) ? urldecode($matches[1]) : ($input['id'] ?? ($_GET['id'] ?? ''));
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Question ID required']);
+            exit();
+        }
+        try {
+            $stmt = $pdo->prepare("DELETE FROM questions WHERE id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(['success' => true]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit();
+    }
+
     if ($method === 'POST') {
         $id = $input['id'] ?? ('q-' . round(microtime(true) * 1000));
         $kelas = $input['kelas'] ?? 'Kelas 5';
@@ -159,24 +192,6 @@ if (isRoute('/api/questions', $request_uri)) {
         }
         exit();
     }
-    if ($method === 'DELETE') {
-        preg_match('/\/api\/questions\/(.+)/', $request_uri, $matches);
-        $id = isset($matches[1]) ? urldecode($matches[1]) : ($input['id'] ?? '');
-        if (!$id) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Question ID required']);
-            exit();
-        }
-        try {
-            $stmt = $pdo->prepare("DELETE FROM questions WHERE id = ?");
-            $stmt->execute([$id]);
-            echo json_encode(['success' => true]);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
-        }
-        exit();
-    }
 }
 
 // 4. PACKAGES CRUD
@@ -199,6 +214,27 @@ if (isRoute('/api/packages', $request_uri)) {
         }
         exit();
     }
+
+    // Handle DELETE package
+    if (isDeleteAction($method, $input)) {
+        preg_match('/\/packages\/([^\/\?]+)/', $request_uri, $matches);
+        $id = (isset($matches[1]) && strlen($matches[1]) > 0) ? urldecode($matches[1]) : ($input['id'] ?? ($_GET['id'] ?? ''));
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Package ID required']);
+            exit();
+        }
+        try {
+            $stmt = $pdo->prepare("DELETE FROM packages WHERE id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(['success' => true]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit();
+    }
+
     if ($method === 'POST') {
         $id = $input['id'] ?? ('pkg-' . round(microtime(true) * 1000));
         $name = $input['name'] ?? '';
@@ -236,24 +272,6 @@ if (isRoute('/api/packages', $request_uri)) {
         }
         exit();
     }
-    if ($method === 'DELETE') {
-        preg_match('/\/api\/packages\/(.+)/', $request_uri, $matches);
-        $id = isset($matches[1]) ? urldecode($matches[1]) : ($input['id'] ?? '');
-        if (!$id) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Package ID required']);
-            exit();
-        }
-        try {
-            $stmt = $pdo->prepare("DELETE FROM packages WHERE id = ?");
-            $stmt->execute([$id]);
-            echo json_encode(['success' => true]);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
-        }
-        exit();
-    }
 }
 
 // 5. RESULTS CRUD
@@ -282,6 +300,27 @@ if (isRoute('/api/results', $request_uri)) {
         }
         exit();
     }
+
+    // Handle DELETE result
+    if (isDeleteAction($method, $input)) {
+        preg_match('/\/results\/([^\/\?]+)/', $request_uri, $matches);
+        $id = (isset($matches[1]) && strlen($matches[1]) > 0) ? urldecode($matches[1]) : ($input['id'] ?? ($_GET['id'] ?? ''));
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Result ID required']);
+            exit();
+        }
+        try {
+            $stmt = $pdo->prepare("DELETE FROM results WHERE id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(['success' => true]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit();
+    }
+
     if ($method === 'POST') {
         $id = $input['id'] ?? ('res-' . round(microtime(true) * 1000));
         $qRaw = $input['questions'] ?? [];
@@ -315,24 +354,6 @@ if (isRoute('/api/results', $request_uri)) {
                 $questionsJson
             ]);
             echo json_encode(['success' => true, 'id' => $id]);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
-        }
-        exit();
-    }
-    if ($method === 'DELETE') {
-        preg_match('/\/api\/results\/(.+)/', $request_uri, $matches);
-        $id = isset($matches[1]) ? urldecode($matches[1]) : ($input['id'] ?? '');
-        if (!$id) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Result ID required']);
-            exit();
-        }
-        try {
-            $stmt = $pdo->prepare("DELETE FROM results WHERE id = ?");
-            $stmt->execute([$id]);
-            echo json_encode(['success' => true]);
         } catch (PDOException $e) {
             http_response_code(500);
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);

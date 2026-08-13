@@ -214,10 +214,25 @@ export const storageService = {
         const users = this.getUsers().filter(u => u.id !== id);
         localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
 
-        // Sync to MySQL API
+        // Sync to MySQL API (Try HTTP DELETE then Fallback POST for CWP hosting)
         try {
-            await fetch(`/api/users/${encodeURIComponent(id)}`, { method: 'DELETE' });
-        } catch (e) {}
+            const res = await fetch(`/api/users/${encodeURIComponent(id)}`, { method: 'DELETE' });
+            if (!res.ok) {
+                await fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+            }
+        } catch (e) {
+            try {
+                await fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+            } catch (err) {}
+        }
     },
 
     async importUsers(userList) {
@@ -290,10 +305,25 @@ export const storageService = {
         const questions = this.getQuestions().filter(q => q.id !== id);
         localStorage.setItem(STORAGE_KEYS.QUESTIONS, JSON.stringify(questions));
 
-        // Sync to MySQL API
+        // Sync to MySQL API (Try HTTP DELETE then Fallback POST for CWP hosting)
         try {
-            await fetch(`/api/questions/${encodeURIComponent(id)}`, { method: 'DELETE' });
-        } catch (e) {}
+            const res = await fetch(`/api/questions/${encodeURIComponent(id)}`, { method: 'DELETE' });
+            if (!res.ok) {
+                await fetch('/api/questions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+            }
+        } catch (e) {
+            try {
+                await fetch('/api/questions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+            } catch (err) {}
+        }
     },
 
     // --- PACKAGES CRUD ---
@@ -332,10 +362,25 @@ export const storageService = {
         const packages = this.getPackages().filter(p => p.id !== id);
         localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(packages));
 
-        // Sync to MySQL API
+        // Sync to MySQL API (Try HTTP DELETE then Fallback POST for CWP hosting)
         try {
-            await fetch(`/api/packages/${encodeURIComponent(id)}`, { method: 'DELETE' });
-        } catch (e) {}
+            const res = await fetch(`/api/packages/${encodeURIComponent(id)}`, { method: 'DELETE' });
+            if (!res.ok) {
+                await fetch('/api/packages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+            }
+        } catch (e) {
+            try {
+                await fetch('/api/packages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+            } catch (err) {}
+        }
     },
 
     // --- CBT ACTIVE EXAM SESSION & TIMER PERSISTENCE ---
