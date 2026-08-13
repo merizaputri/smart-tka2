@@ -114,7 +114,25 @@ export const storageService = {
             if (packagesRes.ok) {
                 const dbPackages = await packagesRes.json();
                 if (Array.isArray(dbPackages) && dbPackages.length > 0) {
-                    localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(dbPackages));
+                    const formatted = dbPackages.map(p => {
+                        let qIds = p.questionIds || p.question_ids || [];
+                        if (typeof qIds === 'string') {
+                            try {
+                                qIds = JSON.parse(qIds);
+                                if (typeof qIds === 'string') qIds = JSON.parse(qIds);
+                            } catch (e) { qIds = []; }
+                        }
+                        return {
+                            ...p,
+                            questionIds: Array.isArray(qIds) ? qIds : [],
+                            durationMinutes: parseInt(p.durationMinutes || p.duration_minutes, 10) || 15,
+                            kkm: parseInt(p.kkm, 10) || 70,
+                            randomizeQuestions: p.randomizeQuestions !== false && p.randomize_questions != 0,
+                            randomizeOptions: p.randomizeOptions !== false && p.randomize_options != 0,
+                            showResultsToStudent: p.showResultsToStudent !== false && p.show_results_to_student != 0
+                        };
+                    });
+                    localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(formatted));
                 } else {
                     const localPackages = this.getPackages();
                     for (const p of localPackages) {
@@ -340,10 +358,27 @@ export const storageService = {
         }
     },
 
-    // --- PACKAGES CRUD ---
     getPackages() {
         try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEYS.PACKAGES)) || [];
+            const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.PACKAGES)) || [];
+            return raw.map(p => {
+                let qIds = p.questionIds || p.question_ids || [];
+                if (typeof qIds === 'string') {
+                    try {
+                        qIds = JSON.parse(qIds);
+                        if (typeof qIds === 'string') qIds = JSON.parse(qIds);
+                    } catch (e) { qIds = []; }
+                }
+                return {
+                    ...p,
+                    questionIds: Array.isArray(qIds) ? qIds : [],
+                    durationMinutes: parseInt(p.durationMinutes || p.duration_minutes, 10) || 15,
+                    kkm: parseInt(p.kkm, 10) || 70,
+                    randomizeQuestions: p.randomizeQuestions !== false && p.randomize_questions != 0,
+                    randomizeOptions: p.randomizeOptions !== false && p.randomize_options != 0,
+                    showResultsToStudent: p.showResultsToStudent !== false && p.show_results_to_student != 0
+                };
+            });
         } catch (e) {
             return [];
         }

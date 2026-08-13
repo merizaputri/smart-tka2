@@ -210,7 +210,16 @@ if (isRoute('/api/packages', $request_uri)) {
             $stmt = $pdo->query("SELECT * FROM packages ORDER BY created_at DESC");
             $rows = $stmt->fetchAll();
             foreach ($rows as &$p) {
-                $p['questionIds'] = is_string($p['question_ids']) ? json_decode($p['question_ids'], true) : ($p['question_ids'] ?? []);
+                $qIds = $p['question_ids'] ?? ($p['questionIds'] ?? []);
+                if (is_string($qIds)) {
+                    $decoded = json_decode($qIds, true);
+                    if (is_string($decoded)) {
+                        $decoded = json_decode($decoded, true);
+                    }
+                    $p['questionIds'] = is_array($decoded) ? $decoded : [];
+                } else {
+                    $p['questionIds'] = is_array($qIds) ? $qIds : [];
+                }
                 $p['durationMinutes'] = (int)$p['duration_minutes'];
                 $p['randomizeQuestions'] = (bool)$p['randomize_questions'];
                 $p['randomizeOptions'] = (bool)$p['randomize_options'];
