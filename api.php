@@ -35,6 +35,55 @@ try {
     exit();
 }
 
+// Auto Migration Helper: Ensure missing columns exist in MySQL tables automatically
+function ensureSchema($pdo) {
+    static $migrated = false;
+    if ($migrated) return;
+    $migrated = true;
+
+    try {
+        // 1. Ensure questions table columns
+        $pdo->exec("ALTER TABLE `questions` ADD COLUMN IF NOT EXISTS `passage` LONGTEXT NULL");
+        $pdo->exec("ALTER TABLE `questions` ADD COLUMN IF NOT EXISTS `bab` VARCHAR(128) NULL DEFAULT 'Umum'");
+        $pdo->exec("ALTER TABLE `questions` ADD COLUMN IF NOT EXISTS `difficulty` VARCHAR(32) NULL DEFAULT 'Sedang'");
+        $pdo->exec("ALTER TABLE `questions` ADD COLUMN IF NOT EXISTS `explanation` LONGTEXT NULL");
+        $pdo->exec("ALTER TABLE `questions` ADD COLUMN IF NOT EXISTS `image` LONGTEXT NULL");
+        $pdo->exec("ALTER TABLE `questions` MODIFY COLUMN `answer_key` VARCHAR(64) NOT NULL DEFAULT 'A'");
+        
+        // 2. Ensure results table columns
+        $pdo->exec("ALTER TABLE `results` ADD COLUMN IF NOT EXISTS `unanswered_count` INT NOT NULL DEFAULT 0");
+
+        // 3. Ensure users table columns
+        $pdo->exec("ALTER TABLE `users` MODIFY COLUMN `avatar` LONGTEXT NULL");
+    } catch (PDOException $e) {
+        // Fallback for older MySQL / MariaDB versions that don't support ADD COLUMN IF NOT EXISTS
+        try {
+            $colsPass = $pdo->query("SHOW COLUMNS FROM `questions` LIKE 'passage'")->fetchAll();
+            if (empty($colsPass)) {
+                $pdo->exec("ALTER TABLE `questions` ADD `passage` LONGTEXT NULL");
+            }
+            $colsBab = $pdo->query("SHOW COLUMNS FROM `questions` LIKE 'bab'")->fetchAll();
+            if (empty($colsBab)) {
+                $pdo->exec("ALTER TABLE `questions` ADD `bab` VARCHAR(128) NULL DEFAULT 'Umum'");
+            }
+            $colsDiff = $pdo->query("SHOW COLUMNS FROM `questions` LIKE 'difficulty'")->fetchAll();
+            if (empty($colsDiff)) {
+                $pdo->exec("ALTER TABLE `questions` ADD `difficulty` VARCHAR(32) NULL DEFAULT 'Sedang'");
+            }
+            $colsExp = $pdo->query("SHOW COLUMNS FROM `questions` LIKE 'explanation'")->fetchAll();
+            if (empty($colsExp)) {
+                $pdo->exec("ALTER TABLE `questions` ADD `explanation` LONGTEXT NULL");
+            }
+            $colsRes = $pdo->query("SHOW COLUMNS FROM `results` LIKE 'unanswered_count'")->fetchAll();
+            if (empty($colsRes)) {
+                $pdo->exec("ALTER TABLE `results` ADD `unanswered_count` INT NOT NULL DEFAULT 0");
+            }
+        } catch (PDOException $ex) {}
+    }
+}
+
+ensureSchema($pdo);
+
 $request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
