@@ -435,7 +435,8 @@ export const storageService = {
     // --- CBT ACTIVE EXAM SESSION & TIMER PERSISTENCE ---
     startExamSession(pkg, student) {
         const allQuestions = this.getQuestions();
-        let selectedQuestions = allQuestions.filter(q => pkg.questionIds.includes(q.id));
+        // Strictly filter questions matching package questionIds AND matching package subject and class
+        let selectedQuestions = allQuestions.filter(q => (pkg.questionIds || []).includes(q.id) && q.subject === pkg.subject && q.kelas === pkg.kelas);
 
         if (selectedQuestions.length === 0) {
             selectedQuestions = allQuestions.filter(q => q.kelas === pkg.kelas && q.subject === pkg.subject);
@@ -606,9 +607,25 @@ export const storageService = {
         const results = this.getResults().filter(r => r.id !== id);
         localStorage.setItem(STORAGE_KEYS.RESULTS, JSON.stringify(results));
 
+        // Sync to MySQL API (Try HTTP DELETE then Fallback POST for CWP hosting)
         try {
-            await fetch(`/api/results/${encodeURIComponent(id)}`, { method: 'DELETE' });
-        } catch (e) {}
+            const res = await fetch(`/api/results/${encodeURIComponent(id)}`, { method: 'DELETE' });
+            if (!res.ok) {
+                await fetch('/api/results', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+            }
+        } catch (e) {
+            try {
+                await fetch('/api/results', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+            } catch (err) {}
+        }
     }
 };
 

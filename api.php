@@ -18,20 +18,37 @@ $db_pass = getenv('DB_PASS') ?: 'smart-tka123';
 $db_name = getenv('DB_NAME') ?: 'smarttka_db';
 $db_port = getenv('DB_PORT') ?: '3306';
 
-try {
-    $pdo = new PDO("mysql:host={$db_host};port={$db_port};dbname={$db_name};charset=utf8mb4", $db_user, $db_pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-    ]);
-} catch (PDOException $e) {
+$pdo = null;
+$conn_error = null;
+
+// Try default credentials first, then fallback to local XAMPP root
+$credentials = [
+    ['user' => $db_user, 'pass' => $db_pass],
+    ['user' => 'root', 'pass' => ''],
+    ['user' => 'root', 'pass' => 'root']
+];
+
+foreach ($credentials as $cred) {
+    try {
+        $pdo = new PDO("mysql:host={$db_host};port={$db_port};dbname={$db_name};charset=utf8mb4", $cred['user'], $cred['pass'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+        ]);
+        break;
+    } catch (PDOException $e) {
+        $conn_error = $e->getMessage();
+    }
+}
+
+if (!$pdo) {
     $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     if (strpos($uri, '/api/health') !== false) {
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'mysql' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['status' => 'error', 'mysql' => false, 'message' => $conn_error]);
         exit();
     }
     http_response_code(500);
-    echo json_encode(['error' => 'Database Connection Failed: ' . $e->getMessage()]);
+    echo json_encode(['error' => 'Database Connection Failed: ' . $conn_error]);
     exit();
 }
 
@@ -52,6 +69,7 @@ function ensureSchema($pdo) {
         
         // 2. Ensure results table columns
         $pdo->exec("ALTER TABLE `results` ADD COLUMN IF NOT EXISTS `unanswered_count` INT NOT NULL DEFAULT 0");
+        $pdo->exec("ALTER TABLE `results` ADD COLUMN IF NOT EXISTS `answers` LONGTEXT NULL");
 
         // 3. Ensure users table columns
         $pdo->exec("ALTER TABLE `users` MODIFY COLUMN `avatar` LONGTEXT NULL");
@@ -78,15 +96,27 @@ function ensureSchema($pdo) {
             if (empty($colsRes)) {
                 $pdo->exec("ALTER TABLE `results` ADD `unanswered_count` INT NOT NULL DEFAULT 0");
             }
+            $colsAns = $pdo->query("SHOW COLUMNS FROM `results` LIKE 'answers'")->fetchAll();
+            if (empty($colsAns)) {
+                $pdo->exec("ALTER TABLE `results` ADD `answers` LONGTEXT NULL");
+            }
         } catch (PDOException $ex) {}
     }
 }
 
 ensureSchema($pdo);
 
-$request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$method = $_SERVER['REQUEST_METHOD'];
-$input = json_decode(file_get_contents('php://input'), true) ?? [];
+$request_uri = parse_url($_SERVER['REQUEST_URI'] ?? ($_SERVER['PHP_SELF'] ?? '/'), PHP_URL_PATH);
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+$rawInput = file_get_contents('php://input');
+if (empty($rawInput)) {
+    $rawInput = @file_get_contents('php://stdin');
+}
+$input = !empty($rawInput) ? (json_decode($rawInput, true) ?? []) : ($_POST ?? []);
+if (empty($input) && !empty($_GET)) {
+    $input = $_GET;
+}
 
 // Route matcher helper
 function isRoute($path, $request_uri) {
@@ -359,6 +389,7 @@ if (isRoute('/api/results', $request_uri)) {
                 $r['durationSeconds'] = (int)$r['duration_seconds'];
                 $r['completedAt'] = $r['completed_at'];
                 $r['questions'] = is_string($r['questions']) ? json_decode($r['questions'], true) : $r['questions'];
+                $r['answers'] = isset($r['answers']) && is_string($r['answers']) ? json_decode($r['answers'], true) : ($r['answers'] ?? []);
             }
             echo json_encode($rows, JSON_UNESCAPED_UNICODE);
         } catch (PDOException $e) {
@@ -392,13 +423,16 @@ if (isRoute('/api/results', $request_uri)) {
         $id = $input['id'] ?? ('res-' . round(microtime(true) * 1000));
         $qRaw = $input['questions'] ?? [];
         $questionsJson = is_array($qRaw) ? json_encode($qRaw, JSON_UNESCAPED_UNICODE) : (is_string($qRaw) ? $qRaw : '[]');
+        $ansRaw = $input['answers'] ?? [];
+        $answersJson = is_array($ansRaw) ? json_encode($ansRaw, JSON_UNESCAPED_UNICODE) : (is_string($ansRaw) ? $ansRaw : '{}');
 
         try {
-            $sql = "INSERT INTO results (id, student_id, student_name, kelas, package_id, package_name, subject, mode, score, correct_count, wrong_count, unanswered_count, total_questions, kkm, status, duration_seconds, completed_at, questions)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            $sql = "INSERT INTO results (id, student_id, student_name, kelas, package_id, package_name, subject, mode, score, correct_count, wrong_count, unanswered_count, total_questions, kkm, status, duration_seconds, completed_at, questions, answers)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON DUPLICATE KEY UPDATE
                     student_name = VALUES(student_name), score = VALUES(score), correct_count = VALUES(correct_count),
-                    wrong_count = VALUES(wrong_count), unanswered_count = VALUES(unanswered_count), status = VALUES(status)";
+                    wrong_count = VALUES(wrong_count), unanswered_count = VALUES(unanswered_count), status = VALUES(status),
+                    questions = VALUES(questions), answers = VALUES(answers)";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
                 $id,
@@ -418,7 +452,8 @@ if (isRoute('/api/results', $request_uri)) {
                 $input['status'] ?? 'BELUM LULUS',
                 $input['durationSeconds'] ?? ($input['duration_seconds'] ?? 0),
                 $input['completedAt'] ?? ($input['completed_at'] ?? date('c')),
-                $questionsJson
+                $questionsJson,
+                $answersJson
             ]);
             echo json_encode(['success' => true, 'id' => $id]);
         } catch (PDOException $e) {

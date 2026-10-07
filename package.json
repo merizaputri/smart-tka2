@@ -2,10 +2,11 @@
   "name": "tka-smart-exam",
   "version": "1.0.0",
   "description": "Aplikasi CBT Latihan Tes Kemampuan Akademik (TKA) SD - PHP & MySQL Backend",
-  "main": "api.php",
+  "main": "server.js",
   "scripts": {
-    "start": "php -S 0.0.0.0:3000 router.php",
-    "dev": "php -S 0.0.0.0:3000 router.php"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "php": "C:\\xampp\\php\\php.exe -S 0.0.0.0:3000 router.php"
   },
   "keywords": [
     "cbt",

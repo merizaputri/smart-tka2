@@ -9,6 +9,10 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
     let activeTab = 'siswa'; // 'siswa' | 'soal' | 'paket' | 'laporan' | 'kelas'
     let selectedClassFilter = 'all';
     let selectedSubjectFilter = 'all';
+    let selectedPackageClassFilter = 'all';
+    let selectedPackageSubjectFilter = 'all';
+    let selectedPackageModeFilter = 'all';
+    let packageSearchQuery = '';
     let soalViewMode = 'cards'; // 'cards' | 'table'
 
     function renderView() {
@@ -358,68 +362,235 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
 
     // 3. MANAJEMEN PAKET UJIAN TAB
     function renderPaketTab(packages, questions) {
+        // Filter packages based on selected filters
+        const filteredPackages = packages.filter(pkg => {
+            const matchClass = selectedPackageClassFilter === 'all' || pkg.kelas === selectedPackageClassFilter;
+            const matchSubj = selectedPackageSubjectFilter === 'all' || pkg.subject === selectedPackageSubjectFilter;
+            const matchMode = selectedPackageModeFilter === 'all' || pkg.mode === selectedPackageModeFilter;
+            const matchSearch = !packageSearchQuery || (pkg.name || '').toLowerCase().includes(packageSearchQuery.toLowerCase());
+            return matchClass && matchSubj && matchMode && matchSearch;
+        });
+
+        // Stats summary for packages
+        const totalSimulasi = packages.filter(p => p.mode === 'simulasi').length;
+        const totalLatihan = packages.filter(p => p.mode === 'latihan').length;
+        const totalAssignedQuestions = packages.reduce((acc, p) => acc + (p.questionIds ? p.questionIds.length : 0), 0);
+
         return `
             <div>
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-100">
+                <!-- Header & Action -->
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-100">
                     <div>
-                        <h3 class="font-outfit font-black text-xl text-slate-800">Paket Ujian CBT</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Atur durasi timer, KKM, mode ujian latihan/simulasi, acak soal & jawaban</p>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 text-brand-700 font-bold text-xs mb-1">
+                            <i class="fa-solid fa-box-archive"></i> Bank Paket CBT
+                        </div>
+                        <h3 class="font-outfit font-black text-2xl text-slate-800">Manajemen Paket Ujian</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Kelola paket simulasi dan latihan per kelas, durasi timer, KKM, dan distribusi soal</p>
                     </div>
 
-                    <button id="btn-add-paket" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition-all">
-                        <i class="fa-solid fa-plus mr-1"></i> Buat Paket Ujian Baru
+                    <button id="btn-add-paket" class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-outfit font-bold text-xs shadow-md shadow-brand-600/30 transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Buat Paket Ujian Baru
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    ${packages.map(pkg => {
-                        const subj = SUBJECTS.find(s => s.id === pkg.subject) || { name: pkg.subject };
-                        const qCount = pkg.questionIds ? pkg.questionIds.length : 0;
-                        const isSim = pkg.mode === 'simulasi';
+                <!-- Quick Stats Strip -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                    <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-base">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase font-bold text-slate-400">Total Paket</div>
+                            <div class="font-outfit font-black text-lg text-slate-800">${packages.length}</div>
+                        </div>
+                    </div>
 
-                        return `
-                            <div class="border border-slate-200 rounded-3xl p-6 bg-white hover:shadow-md transition-all relative">
-                                <div class="flex items-center justify-between gap-2 mb-3">
-                                    <span class="px-3 py-1 rounded-full text-xs font-extrabold ${isSim ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}">
-                                        ${isSim ? 'Simulasi TKA' : 'Mode Latihan'}
-                                    </span>
-                                    <div class="flex items-center gap-1">
-                                        <button data-edit-package="${pkg.id}" class="text-brand-600 hover:bg-brand-50 p-2 rounded-lg transition-colors text-xs font-bold" title="Edit Paket">
-                                            <i class="fa-solid fa-pen-to-square"></i>
-                                        </button>
-                                        <button data-delete-package="${pkg.id}" class="text-rose-600 hover:bg-rose-50 p-2 rounded-lg transition-colors text-xs font-bold" title="Hapus Paket">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                        </button>
-                                    </div>
-                                </div>
+                    <div class="bg-rose-50/60 border border-rose-100 rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-base">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase font-bold text-rose-500">Mode Simulasi</div>
+                            <div class="font-outfit font-black text-lg text-rose-800">${totalSimulasi}</div>
+                        </div>
+                    </div>
 
-                                <h4 class="font-outfit font-black text-lg text-slate-800 mb-1">${pkg.name}</h4>
-                                <div class="text-xs font-bold text-brand-600 mb-4">${subj.name} • ${pkg.kelas}</div>
+                    <div class="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-base">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase font-bold text-emerald-500">Mode Latihan</div>
+                            <div class="font-outfit font-black text-lg text-emerald-800">${totalLatihan}</div>
+                        </div>
+                    </div>
 
-                                <div class="grid grid-cols-3 gap-2 text-center text-xs mb-4">
-                                    <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
-                                        <div class="text-[10px] text-slate-400">JUMLAH</div>
-                                        <div class="font-bold text-slate-800 mt-0.5">${qCount} Soal</div>
-                                    </div>
-                                    <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
-                                        <div class="text-[10px] text-slate-400">TIMER</div>
-                                        <div class="font-bold text-slate-800 mt-0.5">${pkg.durationMinutes} Menit</div>
-                                    </div>
-                                    <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
-                                        <div class="text-[10px] text-slate-400">KKM</div>
-                                        <div class="font-bold text-emerald-600 mt-0.5">${pkg.kkm || 70}</div>
-                                    </div>
-                                </div>
-
-                                <div class="text-[11px] text-slate-500 space-y-1 bg-slate-50 p-3 rounded-xl">
-                                    <div>⚡ Acak Soal: <strong>${pkg.randomizeQuestions ? 'Ya' : 'Tidak'}</strong></div>
-                                    <div>🔀 Acak Pilihan: <strong>${pkg.randomizeOptions ? 'Ya' : 'Tidak'}</strong></div>
-                                    <div>👁️ Hasil ke Siswa: <strong>${pkg.showResultsToStudent !== false ? 'Langsung Tampil' : 'Disembunyikan'}</strong></div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
+                    <div class="bg-purple-50/60 border border-purple-100 rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-base">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase font-bold text-purple-500">Total Soal Terpasang</div>
+                            <div class="font-outfit font-black text-lg text-purple-800">${totalAssignedQuestions}</div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Filter & Search Toolbar -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 mb-6 shadow-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <!-- Search Box -->
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input 
+                                type="text" 
+                                id="filter-search-paket" 
+                                placeholder="Cari nama paket ujian..." 
+                                value="${packageSearchQuery}"
+                                class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-700 bg-slate-50 focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none transition-all"
+                            />
+                        </div>
+
+                        <!-- Class Filter -->
+                        <div class="relative">
+                            <select id="filter-class-paket" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 focus:bg-white focus:border-brand-500 outline-none">
+                                <option value="all" ${selectedPackageClassFilter === 'all' ? 'selected' : ''}>🎓 Semua Kelas</option>
+                                ${CLASSES.map(c => `<option value="${c}" ${selectedPackageClassFilter === c ? 'selected' : ''}>${c}</option>`).join('')}
+                            </select>
+                        </div>
+
+                        <!-- Subject Filter -->
+                        <div class="relative">
+                            <select id="filter-subj-paket" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 focus:bg-white focus:border-brand-500 outline-none">
+                                <option value="all" ${selectedPackageSubjectFilter === 'all' ? 'selected' : ''}>📚 Semua Mata Pelajaran</option>
+                                ${SUBJECTS.map(s => `<option value="${s.id}" ${selectedPackageSubjectFilter === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
+                            </select>
+                        </div>
+
+                        <!-- Mode Filter -->
+                        <div class="relative">
+                            <select id="filter-mode-paket" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 focus:bg-white focus:border-brand-500 outline-none">
+                                <option value="all" ${selectedPackageModeFilter === 'all' ? 'selected' : ''}>🎯 Semua Mode Ujian</option>
+                                <option value="simulasi" ${selectedPackageModeFilter === 'simulasi' ? 'selected' : ''}>⚡ Mode Simulasi TKA</option>
+                                <option value="latihan" ${selectedPackageModeFilter === 'latihan' ? 'selected' : ''}>📚 Mode Latihan</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Active Filter Badges & Reset -->
+                    ${(selectedPackageClassFilter !== 'all' || selectedPackageSubjectFilter !== 'all' || selectedPackageModeFilter !== 'all' || packageSearchQuery) ? `
+                        <div class="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs">
+                            <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
+                                <span class="font-bold text-slate-700">Filter Aktif:</span>
+                                ${selectedPackageClassFilter !== 'all' ? `<span class="px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 font-semibold border border-brand-200">${selectedPackageClassFilter}</span>` : ''}
+                                ${selectedPackageSubjectFilter !== 'all' ? `<span class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 font-semibold border border-purple-200">${(SUBJECTS.find(s=>s.id===selectedPackageSubjectFilter)||{}).name || selectedPackageSubjectFilter}</span>` : ''}
+                                ${selectedPackageModeFilter !== 'all' ? `<span class="px-2 py-0.5 rounded-md ${selectedPackageModeFilter === 'simulasi' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'} font-semibold">${selectedPackageModeFilter === 'simulasi' ? 'Simulasi' : 'Latihan'}</span>` : ''}
+                                ${packageSearchQuery ? `<span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold">"${packageSearchQuery}"</span>` : ''}
+                            </div>
+                            <button id="btn-reset-filter-paket" class="text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline flex items-center gap-1">
+                                <i class="fa-solid fa-rotate-left text-[10px]"></i> Reset Filter
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- Package Cards Grid -->
+                ${filteredPackages.length === 0 ? `
+                    <div class="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-300 p-8 shadow-sm">
+                        <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto text-2xl mb-3">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                        <h4 class="font-outfit font-black text-slate-700 text-lg">Tidak Ada Paket Ujian Ditemukan</h4>
+                        <p class="text-xs text-slate-500 max-w-md mx-auto mt-1">Coba sesuaikan filter kelas, mata pelajaran, atau kata kunci pencarian Anda.</p>
+                        <div class="mt-4 flex items-center justify-center gap-3">
+                            ${(selectedPackageClassFilter !== 'all' || selectedPackageSubjectFilter !== 'all' || selectedPackageModeFilter !== 'all' || packageSearchQuery) ? `
+                                <button id="btn-reset-filter-paket-empty" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors">
+                                    <i class="fa-solid fa-rotate-left mr-1"></i> Reset Semua Filter
+                                </button>
+                            ` : ''}
+                            <button id="btn-add-paket-empty" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition-all">
+                                <i class="fa-solid fa-plus mr-1"></i> Buat Paket Baru
+                            </button>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${filteredPackages.map(pkg => {
+                            const subj = SUBJECTS.find(s => s.id === pkg.subject) || { name: pkg.subject, icon: 'fa-book', badgeBg: 'bg-brand-50', badgeText: 'text-brand-700', border: 'border-brand-200' };
+                            const qCount = pkg.questionIds ? pkg.questionIds.length : 0;
+                            const isSim = pkg.mode === 'simulasi';
+
+                            return `
+                                <div class="border border-slate-200 rounded-3xl p-5 bg-white hover:border-brand-300 hover:shadow-xl transition-all duration-200 flex flex-col justify-between relative group">
+                                    <div>
+                                        <!-- Header Pills & Actions -->
+                                        <div class="flex items-center justify-between gap-2 mb-3">
+                                            <div class="flex flex-wrap items-center gap-1.5">
+                                                <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold ${isSim ? 'bg-rose-100 text-rose-800 border border-rose-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'} flex items-center gap-1">
+                                                    <i class="fa-solid ${isSim ? 'fa-bolt text-[10px]' : 'fa-book-open text-[10px]'}"></i>
+                                                    ${isSim ? 'Simulasi TKA' : 'Mode Latihan'}
+                                                </span>
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                                    ${pkg.kelas || 'Semua Kelas'}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex items-center gap-1">
+                                                <button data-edit-package="${pkg.id}" class="text-brand-600 hover:bg-brand-50 w-7 h-7 rounded-lg transition-colors flex items-center justify-center text-xs font-bold" title="Edit Paket">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                                <button data-delete-package="${pkg.id}" class="text-rose-600 hover:bg-rose-50 w-7 h-7 rounded-lg transition-colors flex items-center justify-center text-xs font-bold" title="Hapus Paket">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Subject Badge & Title -->
+                                        <div class="inline-flex items-center gap-1.5 text-xs font-bold ${subj.badgeText || 'text-brand-700'} mb-1.5">
+                                            <i class="fa-solid ${subj.icon || 'fa-book'} text-[11px]"></i> ${subj.name}
+                                        </div>
+
+                                        <h4 class="font-outfit font-black text-lg text-slate-800 group-hover:text-brand-600 transition-colors line-clamp-2 mb-3 leading-snug">
+                                            ${pkg.name}
+                                        </h4>
+
+                                        <!-- Metrics Grid -->
+                                        <div class="grid grid-cols-3 gap-2 text-center text-xs my-3.5">
+                                            <div class="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+                                                <div class="text-[9px] font-bold uppercase text-slate-400">Jumlah Soal</div>
+                                                <div class="font-outfit font-black text-slate-800 text-sm mt-0.5">${qCount} Soal</div>
+                                            </div>
+                                            <div class="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+                                                <div class="text-[9px] font-bold uppercase text-slate-400">Durasi</div>
+                                                <div class="font-outfit font-black text-slate-800 text-sm mt-0.5">${pkg.durationMinutes || 15} Menit</div>
+                                            </div>
+                                            <div class="bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
+                                                <div class="text-[9px] font-bold uppercase text-slate-400">Target KKM</div>
+                                                <div class="font-outfit font-black text-emerald-600 text-sm mt-0.5">${pkg.kkm || 70}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- CBT Settings Flags -->
+                                    <div class="pt-3 border-t border-slate-100 text-[11px] text-slate-500 space-y-1 bg-slate-50/70 p-3 rounded-2xl">
+                                        <div class="flex items-center justify-between">
+                                            <span>⚡ Acak Urutan Soal:</span>
+                                            <span class="font-bold ${pkg.randomizeQuestions ? 'text-emerald-700' : 'text-slate-500'}">${pkg.randomizeQuestions ? 'Aktif' : 'Tidak'}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span>🔀 Acak Pilihan Opsi:</span>
+                                            <span class="font-bold ${pkg.randomizeOptions ? 'text-emerald-700' : 'text-slate-500'}">${pkg.randomizeOptions ? 'Aktif' : 'Tidak'}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span>👁️ Pembahasan Siswa:</span>
+                                            <span class="font-bold ${pkg.showResultsToStudent !== false ? 'text-emerald-700' : 'text-rose-600'}">${pkg.showResultsToStudent !== false ? 'Boleh' : 'Disembunyikan'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `}
             </div>
         `;
     }
@@ -568,14 +739,56 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
             });
         });
 
-        // Add Paket
-        document.getElementById('btn-add-paket')?.addEventListener('click', () => {
+        // Paket Ujian Filters & Search
+        const searchPaketInput = document.getElementById('filter-search-paket');
+        if (searchPaketInput) {
+            searchPaketInput.addEventListener('input', (e) => {
+                packageSearchQuery = e.target.value;
+                renderView();
+                // keep focus after re-render if still searching
+                const newSearch = document.getElementById('filter-search-paket');
+                if (newSearch) {
+                    newSearch.focus();
+                    newSearch.setSelectionRange(newSearch.value.length, newSearch.value.length);
+                }
+            });
+        }
+
+        document.getElementById('filter-class-paket')?.addEventListener('change', (e) => {
+            selectedPackageClassFilter = e.target.value;
+            renderView();
+        });
+
+        document.getElementById('filter-subj-paket')?.addEventListener('change', (e) => {
+            selectedPackageSubjectFilter = e.target.value;
+            renderView();
+        });
+
+        document.getElementById('filter-mode-paket')?.addEventListener('change', (e) => {
+            selectedPackageModeFilter = e.target.value;
+            renderView();
+        });
+
+        const resetPaketFilterHandler = () => {
+            selectedPackageClassFilter = 'all';
+            selectedPackageSubjectFilter = 'all';
+            selectedPackageModeFilter = 'all';
+            packageSearchQuery = '';
+            renderView();
+        };
+        document.getElementById('btn-reset-filter-paket')?.addEventListener('click', resetPaketFilterHandler);
+        document.getElementById('btn-reset-filter-paket-empty')?.addEventListener('click', resetPaketFilterHandler);
+
+        // Add Paket (Header & Empty state buttons)
+        const openAddPaketModal = () => {
             const allQuestions = storageService.getQuestions();
             renderPackageModal(null, allQuestions, async (newPackageData) => {
                 await storageService.savePackage(newPackageData);
                 renderView();
             });
-        });
+        };
+        document.getElementById('btn-add-paket')?.addEventListener('click', openAddPaketModal);
+        document.getElementById('btn-add-paket-empty')?.addEventListener('click', openAddPaketModal);
 
         // Edit Paket
         container.querySelectorAll('[data-edit-package]').forEach(btn => {
