@@ -92,6 +92,43 @@ CREATE TABLE IF NOT EXISTS `results` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
+-- 5. Table Structure for `materials`
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `materials` (
+  `id` VARCHAR(64) NOT NULL,
+  `kelas` VARCHAR(32) NOT NULL,
+  `subject` VARCHAR(64) NOT NULL,
+  `title` VARCHAR(255) NOT NULL,
+  `description` TEXT NULL,
+  `content` LONGTEXT NULL,
+  `learning_objectives` TEXT NULL,
+  `summary` TEXT NULL,
+  `video_url` VARCHAR(500) NULL,
+  `video_id` VARCHAR(64) NULL,
+  `order_number` INT DEFAULT 1,
+  `status` VARCHAR(32) DEFAULT 'draft',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_mat_class_subj` (`kelas`, `subject`),
+  INDEX `idx_mat_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 6. Table Structure for `material_questions`
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `material_questions` (
+  `id` VARCHAR(64) NOT NULL,
+  `material_id` VARCHAR(64) NOT NULL,
+  `question_id` VARCHAR(64) NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_mat_quest` (`material_id`, `question_id`),
+  INDEX `idx_mq_mat` (`material_id`),
+  INDEX `idx_mq_quest` (`question_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
 -- Initial Seed Data: Default Admin User
 -- --------------------------------------------------------
 INSERT INTO `users` (`id`, `nisn`, `name`, `kelas`, `role`, `password`, `avatar`)

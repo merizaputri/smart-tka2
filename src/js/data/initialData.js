@@ -2898,6 +2898,448 @@ export const INITIAL_QUESTIONS = [
         answerKey: 'B',
         explanation: 'Salat Magrib dikerjakan sebanyak 3 rakaat saat matahari terbenam.'
     },
+    {
+        id: 'q-fiqih-2-13',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Tata Cara & Bacaan Salat',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Surah-surah pendek dibaca setelah membaca ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'doa sujud' },
+            { id: 'B', text: 'doa ruku\'' },
+            { id: 'C', text: 'Surah Al-Fatihah' }
+        ],
+        answerKey: 'C',
+        explanation: 'Dalam salat, setelah membaca Surah Al-Fatihah pada rakaat pertama dan kedua, disunnahkan untuk membaca surah-surah pendek dari Al-Qur\'an.'
+    },
+    {
+        id: 'q-fiqih-2-14',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Gerakan & Posisi Salat',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Duduk tasyahud awal disebut ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'iftirasy' },
+            { id: 'B', text: 'tawaruk' },
+            { id: 'C', text: 'tahiyat' }
+        ],
+        answerKey: 'A',
+        explanation: 'Posisi duduk pada tasyahud awal dinamakan duduk iftirasy, yaitu duduk di atas telapak kaki kiri dengan menegakkan telapak kaki kanan.'
+    },
+    {
+        id: 'q-fiqih-2-15',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Urutan Gerakan Salat',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Gerakan setelah sujud pertama adalah ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'duduk di antara dua sujud' },
+            { id: 'B', text: 'iktidal' },
+            { id: 'C', text: 'ruku\'' }
+        ],
+        answerKey: 'A',
+        explanation: 'Setelah melakukan sujud pertama, gerakan berikutnya adalah bangun untuk melakukan duduk di antara dua sujud (duduk iftirasy) sebelum sujud kedua.'
+    },
+    {
+        id: 'q-fiqih-2-16',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Ketentuan Salat Fardu',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Mengerjakan salat fardu sehari semalam sebanyak ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'tiga kali' },
+            { id: 'B', text: 'empat kali' },
+            { id: 'C', text: 'lima kali' }
+        ],
+        answerKey: 'C',
+        explanation: 'Umat Islam diwajibkan mengerjakan salat fardu sebanyak lima kali (lima waktu) dalam sehari semalam, yaitu Subuh, Zuhur, Asar, Magrib, dan Isya.'
+    },
+    {
+        id: 'q-fiqih-2-17',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Tata Cara Gerakan Salat',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Pada saat bersedekap tangan kanan berada di ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'bawah tangan kiri' },
+            { id: 'B', text: 'antara tangan kiri' },
+            { id: 'C', text: 'atas tangan kiri' }
+        ],
+        answerKey: 'C',
+        explanation: 'Tata cara bersedekap dalam salat adalah dengan meletakkan tangan kanan di atas pergelangan tangan kiri di atas dada atau perut.'
+    },
+    {
+        id: 'q-fiqih-2-18',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Anggota Sujud',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Anggota badan yang harus menempel di tempat sujud pada saat sujud adalah ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'siku' },
+            { id: 'B', text: 'dahi' },
+            { id: 'C', text: 'bahu' }
+        ],
+        answerKey: 'B',
+        explanation: 'Salah satu anggota sujud yang wajib menempel ke tempat sujud (lantai/sajadah) adalah dahi (bersama hidung), selain kedua telapak tangan, kedua lutut, dan ujung jari-jemari kedua kaki.'
+    },
+    {
+        id: 'q-fiqih-2-19',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Gerakan & Posisi Salat',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Duduk iftirasy adalah duduk ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'tasyahud akhir' },
+            { id: 'B', text: 'tawaruk' },
+            { id: 'C', text: 'tasyahud awal' }
+        ],
+        answerKey: 'C',
+        explanation: 'Duduk iftirasy dilakukan pada saat tasyahud awal dan duduk di antara dua sujud. (Sedangkan duduk pada tasyahud akhir disebut duduk tawaruk).'
+    },
+    {
+        id: 'q-fiqih-2-20',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Rukun Salat',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Membaca niat termasuk ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'sunah salat' },
+            { id: 'B', text: 'rukun salat' },
+            { id: 'C', text: 'syarat wajib salat' }
+        ],
+        answerKey: 'B',
+        explanation: 'Niat merupakan rukun salat yang paling utama dan wajib dihadirkan di dalam hati bersamaan dengan takbiratul ihram.'
+    },
+    {
+        id: 'q-fiqih-2-21',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Waktu Salat Fardu',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Salat Asar dikerjakan setelah salat ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'Zuhur' },
+            { id: 'B', text: 'Subuh' },
+            { id: 'C', text: 'Magrib' }
+        ],
+        answerKey: 'A',
+        explanation: 'Urutan waktu pelaksanaan salat fardu dimulai dari Subuh, Zuhur, Asar, Magrib, dan Isya. Sehingga salat Asar dikerjakan setelah waktu salat Zuhur.'
+    },
+    {
+        id: 'q-fiqih-2-22',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Bacaan Salat',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Doa iftitah artinya doa ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'pembukaan' },
+            { id: 'B', text: 'penutup' },
+            { id: 'C', text: 'pertengahan' }
+        ],
+        answerKey: 'A',
+        explanation: 'Kata "iftitah" (اِفْتِتَاح) secara bahasa berarti pembukaan. Doa iftitah dibaca sebagai doa pembuka setelah takbiratul ihram sebelum membaca Surah Al-Fatihah.'
+    },
+    {
+        id: 'q-fiqih-2-23',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Rukun Salat',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Dalam salat membaca Surah Al-Fatihah termasuk ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'syarat wajib salat' },
+            { id: 'B', text: 'rukun salat' },
+            { id: 'C', text: 'syarat sah salat' }
+        ],
+        answerKey: 'B',
+        explanation: 'Membaca Surah Al-Fatihah pada setiap rakaat salat termasuk salah satu rukun salat yang wajib dipenuhi agar salatnya sah.'
+    },
+    {
+        id: 'q-fiqih-2-24',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Gerakan Salat',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Gerakan badan membungkuk sejajar dengan kepala disebut gerakan ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'iktidal' },
+            { id: 'B', text: 'ruku\'' },
+            { id: 'C', text: 'sujud' }
+        ],
+        answerKey: 'B',
+        explanation: 'Ruku\' adalah gerakan membungkukkan badan hingga punggung dan kepala sejajar lurus mendatar dengan kedua tangan memegang kedua lutut.'
+    },
+    {
+        id: 'q-fiqih-2-25',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Ketentuan Salat Fardu',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Salat lima waktu dalam sehari semalam disebut juga salat ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'sunah' },
+            { id: 'B', text: 'fardu' },
+            { id: 'C', text: 'duha' }
+        ],
+        answerKey: 'B',
+        explanation: 'Salat lima waktu yang wajib dikerjakan oleh setiap muslim yang telah baligh dan berakal disebut dengan salat fardu (salat wajib).'
+    },
+    {
+        id: 'q-fiqih-2-26',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Jumlah Rakaat Salat',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Salat yang dikerjakan 2 rakaat adalah ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'Asar' },
+            { id: 'B', text: 'Zuhur' },
+            { id: 'C', text: 'Subuh' }
+        ],
+        answerKey: 'C',
+        explanation: 'Salat Subuh dikerjakan sebanyak 2 rakaat, sedangkan Magrib 3 rakaat, serta Zuhur, Asar, dan Isya masing-masing 4 rakaat.'
+    },
+    {
+        id: 'q-fiqih-2-27',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Keutamaan Salat',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Apabila salat kita baik, maka amal kita akan ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'buruk' },
+            { id: 'B', text: 'baik' },
+            { id: 'C', text: 'sia-sia' }
+        ],
+        answerKey: 'B',
+        explanation: 'Sebagaimana sabda Rasulullah saw., salat adalah amalan pertama yang dihisab. Jika salat seseorang baik, maka seluruh amal perbuatannya yang lain dinilai baik. Sebaliknya jika salatnya rusak, maka rusaklah amal-amalnya.'
+    },
+    {
+        id: 'q-fiqih-2-28',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Rukun Salat & Iktidal',
+        difficulty: 'Sedang',
+        passage: null,
+        question: 'Saat iktidal Fajar langsung sujud tanpa berdiri tegak terlebih dahulu. Kesalahan yang terjadi pada salat Fajar adalah ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'tidak ada kesalahan' },
+            { id: 'B', text: 'melewatkan rukun iktidal dengan sempurna' },
+            { id: 'C', text: 'iktidal tidak penting dalam salat' }
+        ],
+        answerKey: 'B',
+        explanation: 'Iktidal dengan berdiri tegak dan tumaninah (berhenti sejenak) merupakan salah satu rukun salat yang wajib dipenuhi. Jika langsung sujud tanpa berdiri tegak sempurna, maka rukun iktidal terlewatkan dan salat menjadi tidak sah.'
+    },
+    {
+        id: 'q-fiqih-2-29',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Bacaan Duduk di Antara Dua Sujud',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'رَبِّ اغْفِرْلِي وَارْحَمْنِي وَارْزُقْنِي وَعَافِنِي وَاعْفُ عَنِّي\n\nLafal di atas adalah bacaan ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'sujud' },
+            { id: 'B', text: 'rukuk' },
+            { id: 'C', text: 'duduk di antara dua sujud' }
+        ],
+        answerKey: 'C',
+        explanation: 'Lafal "Rabbighfirli warhamni warzuqni wa\'afini wa\'fu \'anni" adalah bacaan doa yang disunnahkan ketika duduk di antara dua sujud (duduk iftirasy).'
+    },
+    {
+        id: 'q-fiqih-2-30',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Urutan & Bacaan Gerakan Salat',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Semua gerakan dalam salat harus dilakukan secara tertib/berurutan. Setelah ruku\' kemudian iktidal dan membaca ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'alhamdulillah' },
+            { id: 'B', text: 'Allāhu Akbar' },
+            { id: 'C', text: 'sami\'allāhu liman hamidah' }
+        ],
+        answerKey: 'C',
+        explanation: 'Ketika bangkit dari ruku\' menuju iktidal (berdiri tegak), disunnahkan membaca "Sami\'allāhu liman hamidah" (Allah Maha Mendengar orang yang memuji-Nya).'
+    },
+    {
+        id: 'q-fiqih-2-31',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Tata Cara Takbiratul Ihram',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Fakhri mengangkat tangan saat mengucapkan "Allahu Akbar" di awal salat. Gerakan mengangkat tangan di awal salat disebut ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'rukuk' },
+            { id: 'B', text: 'takbiratul ihram' },
+            { id: 'C', text: 'sujud' }
+        ],
+        answerKey: 'B',
+        explanation: 'Ucapan takbir "Allāhu Akbar" disertai mengangkat kedua tangan sejajar telinga atau bahu pada permulaan salat dinamakan takbiratul ihram.'
+    },
+    {
+        id: 'q-fiqih-2-32',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Doa Iftitah',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Siti membaca doa iftitah setelah takbiratul ihram sebelum membaca Al-Fatihah. Doa iftitah dibaca di awal salat sebagai ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'doa pembuka salat' },
+            { id: 'B', text: 'doa penutup' },
+            { id: 'C', text: 'pengganti salam' }
+        ],
+        answerKey: 'A',
+        explanation: 'Kata "iftitah" artinya pembukaan. Doa iftitah dibaca sebagai doa pembuka salat pada rakaat pertama setelah takbiratul ihram sebelum membaca Surah Al-Fatihah.'
+    },
+    {
+        id: 'q-fiqih-2-33',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Tata Cara Salam',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Setelah membaca salawat atas Nabi Muhammad saw. pada tahiyat akhir, kemudian mengucapkan ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'assalāmu\'alaikum' },
+            { id: 'B', text: 'subhānallah' },
+            { id: 'C', text: 'alhamdulillah' }
+        ],
+        answerKey: 'A',
+        explanation: 'Pada tahiyat akhir, setelah membaca tasyahud dan salawat atas Nabi Muhammad saw., salat diakhiri dengan mengucapkan salam ("Assalāmu \'alaikum warahmatullāh") menoleh ke kanan dan ke kiri.'
+    },
+    {
+        id: 'q-fiqih-2-34',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Rukun Salat & Salam',
+        difficulty: 'Sedang',
+        passage: null,
+        question: 'Rukun adalah sesuatu yang harus dilakukan. Jika tidak dilakukan, ibadahnya tidak sah. Mengucapkan salam yang merupakan rukun salat adalah ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'salam pertama' },
+            { id: 'B', text: 'salam kedua' },
+            { id: 'C', text: 'salam ketiga' }
+        ],
+        answerKey: 'A',
+        explanation: 'Mengucapkan salam yang pertama (menoleh ke kanan) adalah rukun salat yang wajib dikerjakan untuk mengakhiri salat, sedangkan salam yang kedua hukumnya adalah sunnah.'
+    },
+    {
+        id: 'q-fiqih-2-35',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Bacaan Sujud',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'سُبْحَانَ رَبِّيَ الْأَعْلَى وَبِحَمْدِهِ\n\nLafal di atas adalah bacaan ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'rukuk' },
+            { id: 'B', text: 'sujud' },
+            { id: 'C', text: 'iktidal' }
+        ],
+        answerKey: 'B',
+        explanation: 'Lafal "Subhāna rabbiyal a\'lā wa bihamdih" (Maha Suci Tuhanku Yang Maha Tinggi dan dengan memuji-Nya) adalah bacaan ketika melakukan gerakan sujud.'
+    },
+    {
+        id: 'q-fiqih-2-36',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Sunah Salat & Takbiratul Ihram',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Takbiratul ihram, yaitu mengucapkan Allāhu Akbar di awal salat sambil mengangkat kedua tangan. Setelah takbiratul ihram disunahkan membaca ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'doa rukuk' },
+            { id: 'B', text: 'doa sujud' },
+            { id: 'C', text: 'doa iftitah' }
+        ],
+        answerKey: 'C',
+        explanation: 'Setelah takbiratul ihram dan meletakkan tangan bersedekap, amalan sunnah pertama yang dianjurkan untuk dibaca adalah doa iftitah.'
+    },
+    {
+        id: 'q-fiqih-2-37',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Posisi Duduk Tawaruk',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Posisi duduk dalam salat ada dua. Posisi duduk pada tasyahud akhir disebut ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'tawaruk' },
+            { id: 'B', text: 'iftirasy' },
+            { id: 'C', text: 'bersila' }
+        ],
+        answerKey: 'A',
+        explanation: 'Posisi duduk pada saat tasyahud akhir dinamakan duduk tawaruk, yaitu posisi duduk dengan pantat menempel ke lantai dan kaki kiri dimasukkan ke bawah kaki kanan.'
+    },
+    {
+        id: 'q-fiqih-2-38',
+        kelas: 'Kelas 2',
+        subject: 'fiqih',
+        bab: 'Gerakan & Tumaninah Rukuk',
+        difficulty: 'Mudah',
+        passage: null,
+        question: 'Setiap gerakan salat harus dilakukan dengan tumaninah. Gerakan salat dengan membungkuk sejajar dengan kepala disebut ....',
+        image: null,
+        options: [
+            { id: 'A', text: 'sujud' },
+            { id: 'B', text: 'rukuk' },
+            { id: 'C', text: 'iktidal' }
+        ],
+        answerKey: 'B',
+        explanation: 'Rukuk adalah gerakan membungkukkan badan hingga posisi punggung lurus mendatar sejajar dengan kepala dan kedua telapak tangan memegang kedua lutut disertai rasa tenang (tumaninah).'
+    },
     // BAHASA INGGRIS KELAS 2
     {
         id: 'q-ing-2-1',
@@ -3206,16 +3648,23 @@ export const INITIAL_PACKAGES = [
     },
     {
         id: 'pkg-sim-2-fiqih',
-        name: 'Simulasi TKA Fiqih Kelas 2 - Azan, Ikamah & Salat Fardu',
+        name: 'Simulasi TKA Fiqih Kelas 2 - Azan, Ikamah & Ketentuan Salat Fardu',
         subject: 'fiqih',
         kelas: 'Kelas 2',
         mode: 'simulasi',
         questionIds: [
             'q-fiqih-2-1', 'q-fiqih-2-2', 'q-fiqih-2-3', 'q-fiqih-2-4',
             'q-fiqih-2-5', 'q-fiqih-2-6', 'q-fiqih-2-7', 'q-fiqih-2-8',
-            'q-fiqih-2-9', 'q-fiqih-2-10', 'q-fiqih-2-11', 'q-fiqih-2-12'
+            'q-fiqih-2-9', 'q-fiqih-2-10', 'q-fiqih-2-11', 'q-fiqih-2-12',
+            'q-fiqih-2-13', 'q-fiqih-2-14', 'q-fiqih-2-15', 'q-fiqih-2-16',
+            'q-fiqih-2-17', 'q-fiqih-2-18', 'q-fiqih-2-19', 'q-fiqih-2-20',
+            'q-fiqih-2-21', 'q-fiqih-2-22', 'q-fiqih-2-23', 'q-fiqih-2-24',
+            'q-fiqih-2-25', 'q-fiqih-2-26', 'q-fiqih-2-27', 'q-fiqih-2-28',
+            'q-fiqih-2-29', 'q-fiqih-2-30', 'q-fiqih-2-31', 'q-fiqih-2-32',
+            'q-fiqih-2-33', 'q-fiqih-2-34', 'q-fiqih-2-35', 'q-fiqih-2-36',
+            'q-fiqih-2-37', 'q-fiqih-2-38'
         ],
-        durationMinutes: 20,
+        durationMinutes: 35,
         kkm: 75,
         randomizeQuestions: true,
         randomizeOptions: true,
@@ -3223,6 +3672,33 @@ export const INITIAL_PACKAGES = [
         startDate: '2026-01-01T00:00',
         endDate: '2026-12-31T23:59',
         instructions: 'Kerjakan soal latihan Fiqih Kelas 2 (Azan, Ikamah, dan Ketentuan Salat Fardu) dengan teliti.'
+    },
+    {
+        id: 'pkg-lat-2-fiqih',
+        name: 'Latihan Fiqih Kelas 2 - Azan, Ikamah & Tata Cara Salat Fardu',
+        subject: 'fiqih',
+        kelas: 'Kelas 2',
+        mode: 'latihan',
+        questionIds: [
+            'q-fiqih-2-1', 'q-fiqih-2-2', 'q-fiqih-2-3', 'q-fiqih-2-4',
+            'q-fiqih-2-5', 'q-fiqih-2-6', 'q-fiqih-2-7', 'q-fiqih-2-8',
+            'q-fiqih-2-9', 'q-fiqih-2-10', 'q-fiqih-2-11', 'q-fiqih-2-12',
+            'q-fiqih-2-13', 'q-fiqih-2-14', 'q-fiqih-2-15', 'q-fiqih-2-16',
+            'q-fiqih-2-17', 'q-fiqih-2-18', 'q-fiqih-2-19', 'q-fiqih-2-20',
+            'q-fiqih-2-21', 'q-fiqih-2-22', 'q-fiqih-2-23', 'q-fiqih-2-24',
+            'q-fiqih-2-25', 'q-fiqih-2-26', 'q-fiqih-2-27', 'q-fiqih-2-28',
+            'q-fiqih-2-29', 'q-fiqih-2-30', 'q-fiqih-2-31', 'q-fiqih-2-32',
+            'q-fiqih-2-33', 'q-fiqih-2-34', 'q-fiqih-2-35', 'q-fiqih-2-36',
+            'q-fiqih-2-37', 'q-fiqih-2-38'
+        ],
+        durationMinutes: 40,
+        kkm: 70,
+        randomizeQuestions: false,
+        randomizeOptions: false,
+        showResultsToStudent: true,
+        startDate: '2026-01-01T00:00',
+        endDate: '2026-12-31T23:59',
+        instructions: 'Mode Latihan: Pembahasan dan kunci jawaban lengkap dapat dilihat setelah menyelesaikan soal.'
     },
     {
         id: 'pkg-sim-2-ing',

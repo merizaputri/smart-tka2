@@ -3,12 +3,26 @@
 import { storageService } from '../services/storageService.js';
 import { exportService } from '../services/exportService.js';
 import { CLASSES, SUBJECTS, DIFFICULTY_LEVELS } from '../config/constants.js';
-import { renderImportStudentsModal, renderQuestionModal, renderStudentModal, renderPackageModal, renderQuestionMedia, formatRichText } from '../components/Modals.js';
+import { 
+    renderImportStudentsModal, 
+    renderQuestionModal, 
+    renderStudentModal, 
+    renderPackageModal, 
+    renderMaterialModal,
+    renderGenerateMaterialWizardModal,
+    renderMaterialPreviewModal,
+    renderManageUnmappedQuestionsModal,
+    renderQuestionMedia, 
+    formatRichText 
+} from '../components/Modals.js';
 
 export function renderAdminDashboardPage(container, currentUser, onNavigate) {
-    let activeTab = 'siswa'; // 'siswa' | 'soal' | 'paket' | 'laporan' | 'kelas'
+    let activeTab = 'siswa'; // 'siswa' | 'soal' | 'materi' | 'paket' | 'laporan' | 'kelas'
     let selectedClassFilter = 'all';
     let selectedSubjectFilter = 'all';
+    let selectedMaterialClassFilter = 'all';
+    let selectedMaterialSubjectFilter = 'all';
+    let selectedMaterialStatusFilter = 'all';
     let selectedPackageClassFilter = 'all';
     let selectedPackageSubjectFilter = 'all';
     let selectedPackageModeFilter = 'all';
@@ -18,12 +32,14 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
     function renderView() {
         const users = storageService.getUsers().filter(u => u.role === 'siswa');
         const questions = storageService.getQuestions();
+        const materials = storageService.getMaterials();
         const packages = storageService.getPackages();
         const results = storageService.getResults();
 
         // Calculate stats
         const totalStudents = users.length;
         const totalQuestions = questions.length;
+        const totalMaterials = materials.length;
         const totalPackages = packages.length;
         
         let avgScore = 0;
@@ -41,8 +57,8 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 font-semibold text-xs mb-2 border border-purple-500/30">
                             <i class="fa-solid fa-user-shield"></i> Control Panel Administrator
                         </div>
-                        <h2 class="font-outfit font-black text-2xl sm:text-3xl tracking-tight">Manajemen TKA Smart Exam</h2>
-                        <p class="text-slate-400 text-xs sm:text-sm mt-1">Kelola data siswa, bank soal, paket ujian CBT, serta pantau laporan kelulusan.</p>
+                        <h2 class="font-outfit font-black text-2xl sm:text-3xl tracking-tight">Manajemen SmartTKA Learning & CBT</h2>
+                        <p class="text-slate-400 text-xs sm:text-sm mt-1">Kelola data siswa, bank soal, materi pembelajaran terintegrasi, paket ujian CBT, serta laporan kelulusan.</p>
                     </div>
 
                     <div class="flex items-center gap-3">
@@ -53,60 +69,73 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                 </div>
 
                 <!-- Quick Stats Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-xl font-bold">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-lg font-bold">
                             <i class="fa-solid fa-users"></i>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Siswa</div>
-                            <div class="font-outfit font-black text-2xl text-slate-800">${totalStudents} <span class="text-xs font-normal text-slate-400">Siswa</span></div>
+                            <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Total Siswa</div>
+                            <div class="font-outfit font-black text-xl text-slate-800">${totalStudents} <span class="text-xs font-normal text-slate-400">Siswa</span></div>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-xl font-bold">
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg font-bold">
                             <i class="fa-solid fa-folder-tree"></i>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Bank Soal</div>
-                            <div class="font-outfit font-black text-2xl text-slate-800">${totalQuestions} <span class="text-xs font-normal text-slate-400">Soal</span></div>
+                            <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Bank Soal</div>
+                            <div class="font-outfit font-black text-xl text-slate-800">${totalQuestions} <span class="text-xs font-normal text-slate-400">Soal</span></div>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl font-bold">
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg font-bold">
+                            <i class="fa-solid fa-book-bookmark"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Materi Ajar</div>
+                            <div class="font-outfit font-black text-xl text-slate-800">${totalMaterials} <span class="text-xs font-normal text-slate-400">Materi</span></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg font-bold">
                             <i class="fa-solid fa-box-archive"></i>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Paket Ujian</div>
-                            <div class="font-outfit font-black text-2xl text-slate-800">${totalPackages} <span class="text-xs font-normal text-slate-400">Paket</span></div>
+                            <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Paket Ujian</div>
+                            <div class="font-outfit font-black text-xl text-slate-800">${totalPackages} <span class="text-xs font-normal text-slate-400">Paket</span></div>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl font-bold">
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg font-bold">
                             <i class="fa-solid fa-star"></i>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Rata-Rata Nilai</div>
-                            <div class="font-outfit font-black text-2xl text-slate-800">${avgScore} <span class="text-xs font-normal text-slate-400">/ 100</span></div>
+                            <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Rata-Rata Nilai</div>
+                            <div class="font-outfit font-black text-xl text-slate-800">${avgScore} <span class="text-xs font-normal text-slate-400">/ 100</span></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Admin Main Navigation Tabs -->
                 <div class="flex items-center gap-2 overflow-x-auto pb-2 mb-6 border-b border-slate-200">
-                    <button id="admin-tab-siswa" class="px-5 py-3 rounded-2xl font-outfit text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'siswa' ? 'bg-brand-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}">
+                    <button id="admin-tab-siswa" class="px-4 py-2.5 rounded-2xl font-outfit text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'siswa' ? 'bg-brand-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}">
                         <i class="fa-solid fa-users mr-1.5"></i> Manajemen Siswa
                     </button>
-                    <button id="admin-tab-soal" class="px-5 py-3 rounded-2xl font-outfit text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'soal' ? 'bg-brand-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}">
-                        <i class="fa-solid fa-file-lines mr-1.5"></i> Manajemen Soal
+                    <button id="admin-tab-soal" class="px-4 py-2.5 rounded-2xl font-outfit text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'soal' ? 'bg-brand-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}">
+                        <i class="fa-solid fa-file-lines mr-1.5"></i> Bank Soal
                     </button>
-                    <button id="admin-tab-paket" class="px-5 py-3 rounded-2xl font-outfit text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'paket' ? 'bg-brand-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}">
+                    <button id="admin-tab-materi" class="px-4 py-2.5 rounded-2xl font-outfit text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'materi' ? 'bg-brand-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}">
+                        <i class="fa-solid fa-book-bookmark mr-1.5"></i> 📚 Materi Pembelajaran
+                    </button>
+                    <button id="admin-tab-paket" class="px-4 py-2.5 rounded-2xl font-outfit text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'paket' ? 'bg-brand-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}">
                         <i class="fa-solid fa-boxes-stacked mr-1.5"></i> Paket Ujian
                     </button>
-                    <button id="admin-tab-laporan" class="px-5 py-3 rounded-2xl font-outfit text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'laporan' ? 'bg-brand-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}">
+                    <button id="admin-tab-laporan" class="px-4 py-2.5 rounded-2xl font-outfit text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'laporan' ? 'bg-brand-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}">
                         <i class="fa-solid fa-chart-pie mr-1.5"></i> Laporan & Ranking
                     </button>
                 </div>
@@ -115,6 +144,7 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                 <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8">
                     ${activeTab === 'siswa' ? renderSiswaTab(users) : ''}
                     ${activeTab === 'soal' ? renderSoalTab(questions) : ''}
+                    ${activeTab === 'materi' ? renderMateriTab(materials, questions) : ''}
                     ${activeTab === 'paket' ? renderPaketTab(packages, questions) : ''}
                     ${activeTab === 'laporan' ? renderLaporanTab(results) : ''}
                 </div>
@@ -202,6 +232,8 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
             return matchClass && matchSubj;
         });
 
+        const unmapped = storageService.getUnmappedQuestions();
+
         return `
             <div>
                 <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-100">
@@ -231,11 +263,31 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                             ${SUBJECTS.map(s => `<option value="${s.id}" ${selectedSubjectFilter === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
                         </select>
 
+                        <button id="btn-soal-generate-materi" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> 🤖 Generate Materi
+                        </button>
+
                         <button id="btn-add-soal" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1">
                             <i class="fa-solid fa-plus"></i> Tambah Soal Baru
                         </button>
                     </div>
                 </div>
+
+                ${unmapped.length > 0 ? `
+                    <div class="mb-5 p-3.5 bg-amber-50 rounded-2xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center gap-2 text-amber-900">
+                            <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold shrink-0">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </span>
+                            <span>Terdapat <strong>${unmapped.length} butir soal</strong> yang belum terhubung ke modul Materi Pembelajaran.</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="btn-open-unmapped-modal" class="px-3 py-1.5 rounded-xl bg-amber-200/80 hover:bg-amber-300 text-amber-900 font-bold transition-colors">
+                                Kelola Soal Belum Terhubung
+                            </button>
+                        </div>
+                    </div>
+                ` : ''}
 
                 ${filteredQuestions.length === 0 ? `
                     <div class="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-300 p-6">
@@ -250,7 +302,7 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                             <thead>
                                 <tr class="text-[11px] font-extrabold uppercase text-slate-400 border-b border-slate-200 bg-slate-50">
                                     <th class="py-3 px-4 w-12 text-center">#</th>
-                                    <th class="py-3 px-4 w-44">Kelas & Mapel</th>
+                                    <th class="py-3 px-4 w-48">Kelas, Mapel & Materi</th>
                                     <th class="py-3 px-4">Teks Soal & Pembahasan</th>
                                     <th class="py-3 px-4 w-36 text-center">Kunci Jawaban</th>
                                     <th class="py-3 px-4 w-28 text-right">Aksi</th>
@@ -261,6 +313,11 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                                     const subj = SUBJECTS.find(s => s.id === q.subject) || { name: q.subject };
                                     const opts = Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? (JSON.parse(q.options) || []) : []);
                                     const correctOpt = opts.find(o => o && o.id === q.answerKey);
+                                    const mappedMats = storageService.getMaterialsForQuestion(q.id);
+                                    const matBadgeHtml = mappedMats && mappedMats.length > 0
+                                        ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 inline-flex items-center gap-1"><i class="fa-solid fa-book-bookmark text-indigo-500"></i> ${mappedMats[0].title}</span>`
+                                        : `<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Belum ada materi</span>`;
+
                                     return `
                                         <tr class="hover:bg-slate-50/80 transition-colors">
                                             <td class="py-3.5 px-4 text-center font-outfit font-bold text-slate-600 align-top">
@@ -271,7 +328,8 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">${q.kelas}</span>
                                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">${subj.name}</span>
                                                 </div>
-                                                <div class="text-[11px] text-slate-400 font-semibold truncate max-w-[150px]">${q.bab || '-'}</div>
+                                                <div class="text-[11px] text-slate-400 font-semibold truncate max-w-[150px]">Bab: ${q.bab || '-'}</div>
+                                                <div class="pt-0.5">${matBadgeHtml}</div>
                                             </td>
                                             <td class="py-3.5 px-4 align-top">
                                                 ${q.passage ? `<div class="mb-2 p-2 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 line-clamp-2"><i class="fa-solid fa-book-open text-amber-600 mr-1"></i> <strong>Wacana:</strong> ${formatRichText(q.passage)}</div>` : ''}
@@ -304,6 +362,11 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                         ${filteredQuestions.map((q, idx) => {
                             const subj = SUBJECTS.find(s => s.id === q.subject) || { name: q.subject };
                             const opts = Array.isArray(q.options) ? q.options : (typeof q.options === 'string' ? (JSON.parse(q.options) || []) : []);
+                            const mappedMats = storageService.getMaterialsForQuestion(q.id);
+                            const matBadgeHtml = mappedMats && mappedMats.length > 0
+                                ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 inline-flex items-center gap-1"><i class="fa-solid fa-book-bookmark text-indigo-500"></i> ${mappedMats[0].title}</span>`
+                                : `<span class="text-[11px] font-medium px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Belum ada materi</span>`;
+
                             return `
                                 <div class="border border-slate-200 rounded-2xl p-4 sm:p-5 hover:border-brand-300 transition-all bg-slate-50/50">
                                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-slate-200/80">
@@ -311,7 +374,8 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
                                             <span class="font-outfit font-black text-xs px-2.5 py-1 rounded-lg bg-brand-600 text-white">#${idx + 1}</span>
                                             <span class="text-xs font-bold px-2.5 py-0.5 rounded-md bg-slate-200 text-slate-700">${q.kelas}</span>
                                             <span class="text-xs font-bold px-2.5 py-0.5 rounded-md bg-blue-100 text-blue-800">${subj.name}</span>
-                                            <span class="text-xs font-semibold text-slate-500 max-w-xs truncate">• ${q.bab || 'Bab Ujian'}</span>
+                                            <span class="text-xs font-semibold text-slate-500 max-w-xs truncate">• Bab: ${q.bab || 'Umum'}</span>
+                                            ${matBadgeHtml}
                                             ${q.difficulty ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">${q.difficulty}</span>` : ''}
                                             ${q.passage ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 inline-flex items-center gap-1"><i class="fa-solid fa-book-open text-amber-600"></i> Wacana</span>` : ''}
                                         </div>
@@ -360,7 +424,207 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
         `;
     }
 
-    // 3. MANAJEMEN PAKET UJIAN TAB
+    // 3. MANAJEMEN MATERI PEMBELAJARAN TAB
+    function renderMateriTab(materials, questions) {
+        const filteredMaterials = materials.filter(m => {
+            const matchClass = selectedMaterialClassFilter === 'all' || m.kelas === selectedMaterialClassFilter;
+            const matchSubj = selectedMaterialSubjectFilter === 'all' || m.subject === selectedMaterialSubjectFilter;
+            const matchStatus = selectedMaterialStatusFilter === 'all' || m.status === selectedMaterialStatusFilter;
+            return matchClass && matchSubj && matchStatus;
+        });
+
+        const unmapped = storageService.getUnmappedQuestions();
+        const publishedCount = materials.filter(m => m.status === 'published').length;
+        const draftCount = materials.filter(m => m.status === 'draft').length;
+
+        return `
+            <div>
+                <!-- Header -->
+                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-100">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 font-bold text-xs mb-1">
+                            <i class="fa-solid fa-graduation-cap"></i> Modul Materi & Silabus TKA
+                        </div>
+                        <h3 class="font-outfit font-black text-2xl text-slate-800">Materi Pembelajaran</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Penghubung terstruktur dari Bank Soal ke Paket Ujian (Materi → Latihan → Ujian)</p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                        ${unmapped.length > 0 ? `
+                            <button id="btn-unmapped-materi-tab" class="px-3.5 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs border border-amber-300 transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                                <span>${unmapped.length} Soal Tanpa Materi</span>
+                            </button>
+                        ` : ''}
+
+                        <button id="btn-generate-materi-wizard" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-outfit font-bold text-xs shadow-md shadow-indigo-500/20 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> 🤖 Generate dari Bank Soal
+                        </button>
+
+                        <button id="btn-add-materi-manual" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-outfit font-bold text-xs shadow-md shadow-brand-600/30 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Buat Materi Manual
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Strip -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                    <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-base">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase font-bold text-slate-400">Total Materi</div>
+                            <div class="font-outfit font-black text-lg text-slate-800">${materials.length}</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-base">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase font-bold text-emerald-500">Published (Siap Ujian)</div>
+                            <div class="font-outfit font-black text-lg text-emerald-800">${publishedCount}</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50/60 border border-amber-100 rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-base">
+                            <i class="fa-solid fa-pen-ruler"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase font-bold text-amber-500">Draft (Review Admin)</div>
+                            <div class="font-outfit font-black text-lg text-amber-800">${draftCount}</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50/60 border border-blue-100 rounded-2xl p-3.5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-base">
+                            <i class="fa-solid fa-link"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase font-bold text-blue-500">Soal Terhubung</div>
+                            <div class="font-outfit font-black text-lg text-blue-800">${questions.length - unmapped.length} <span class="text-xs font-normal text-slate-400">/ ${questions.length}</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 mb-6 shadow-sm flex flex-wrap gap-3 items-center">
+                    <div class="flex-1 min-w-[140px]">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Kelas</label>
+                        <select id="filter-class-materi" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 outline-none">
+                            <option value="all" ${selectedMaterialClassFilter === 'all' ? 'selected' : ''}>Semua Kelas</option>
+                            ${CLASSES.map(c => `<option value="${c}" ${selectedMaterialClassFilter === c ? 'selected' : ''}>${c}</option>`).join('')}
+                        </select>
+                    </div>
+
+                    <div class="flex-1 min-w-[160px]">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Mata Pelajaran</label>
+                        <select id="filter-subj-materi" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 outline-none">
+                            <option value="all" ${selectedMaterialSubjectFilter === 'all' ? 'selected' : ''}>Semua Mapel</option>
+                            ${SUBJECTS.map(s => `<option value="${s.id}" ${selectedMaterialSubjectFilter === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
+                        </select>
+                    </div>
+
+                    <div class="flex-1 min-w-[140px]">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</label>
+                        <select id="filter-status-materi" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 outline-none">
+                            <option value="all" ${selectedMaterialStatusFilter === 'all' ? 'selected' : ''}>Semua Status</option>
+                            <option value="published" ${selectedMaterialStatusFilter === 'published' ? 'selected' : ''}>Published</option>
+                            <option value="draft" ${selectedMaterialStatusFilter === 'draft' ? 'selected' : ''}>Draft</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Materials Card Grid -->
+                ${filteredMaterials.length === 0 ? `
+                    <div class="text-center py-16 bg-slate-50 rounded-3xl border border-dashed border-slate-300 p-6 space-y-3">
+                        <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center text-2xl">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <h4 class="font-outfit font-bold text-slate-800 text-base">Belum Ada Materi Pembelajaran</h4>
+                        <p class="text-xs text-slate-500 max-w-md mx-auto">
+                            Anda dapat membuat materi secara manual atau menggunakan fitur <strong>Generate dari Bank Soal</strong> agar sistem otomatis mengelompokkan 240+ soal ke dalam topik materi ajar.
+                        </p>
+                        <div class="pt-2 flex flex-wrap justify-center gap-2">
+                            <button id="btn-empty-generate-materi" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md">
+                                <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> 🤖 Generate dari Bank Soal
+                            </button>
+                            <button id="btn-empty-add-materi" class="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-xs">
+                                + Buat Materi Manual
+                            </button>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${filteredMaterials.map(mat => {
+                            const subj = SUBJECTS.find(s => s.id === mat.subject) || { name: mat.subject };
+                            const qCount = mat.questionIds ? mat.questionIds.length : (mat.question_count || 0);
+                            const isPub = mat.status === 'published';
+
+                            return `
+                                <div class="p-5 bg-white rounded-2xl border border-slate-200 hover:border-brand-300 shadow-sm transition-all flex flex-col justify-between space-y-4">
+                                    <div>
+                                        <div class="flex items-start justify-between gap-2 mb-2">
+                                            <div class="flex flex-wrap items-center gap-1.5">
+                                                <span class="px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 text-[10px] font-bold">${mat.kelas}</span>
+                                                <span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-bold">${subj.name}</span>
+                                                ${mat.order_number ? `<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-semibold">Urutan #${mat.order_number}</span>` : ''}
+                                                ${(mat.video_url || mat.videoUrl) ? `<span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-bold flex items-center gap-1"><i class="fa-brands fa-youtube text-rose-600"></i> Video</span>` : ''}
+                                            </div>
+
+                                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold shrink-0 ${isPub ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                                                ${isPub ? '✓ Published' : '📝 Draft'}
+                                            </span>
+                                        </div>
+
+                                        <h4 class="font-outfit font-bold text-base text-slate-800 hover:text-brand-600 transition-colors">
+                                            📘 ${mat.title}
+                                        </h4>
+
+                                        ${mat.description ? `<p class="text-xs text-slate-500 mt-1 line-clamp-2">${mat.description}</p>` : ''}
+
+                                        <div class="flex items-center gap-3 mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500">
+                                            <span class="font-bold text-indigo-600 inline-flex items-center gap-1">
+                                                <i class="fa-solid fa-list-check"></i> ${qCount} Soal terkait
+                                            </span>
+                                            ${(mat.video_url || mat.videoUrl) ? `<span class="text-rose-600 font-semibold">• Ada Video YouTube</span>` : ''}
+                                            ${mat.summary ? `<span class="text-slate-400">• Ada Ringkasan</span>` : ''}
+                                        </div>
+                                    </div>
+
+                                    <!-- Actions Toolbar -->
+                                    <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs gap-2">
+                                        <div class="flex items-center gap-1.5">
+                                            <button data-preview-material="${mat.id}" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors" title="Preview Tampilan Materi">
+                                                <i class="fa-regular fa-eye"></i> Preview
+                                            </button>
+                                            <button data-edit-material="${mat.id}" class="px-2.5 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold transition-colors" title="Edit Data Materi">
+                                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                                            </button>
+                                        </div>
+
+                                        <div class="flex items-center gap-1.5">
+                                            <button data-toggle-status-material="${mat.id}" class="px-2.5 py-1.5 rounded-lg font-bold transition-colors ${isPub ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'}" title="${isPub ? 'Jadikan Draft' : 'Publikasikan ke Siswa'}">
+                                                ${isPub ? 'Unpublish' : 'Publish'}
+                                            </button>
+                                            <button data-delete-material="${mat.id}" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors" title="Hapus Materi">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `}
+            </div>
+        `;
+    }
+
+    // 4. MANAJEMEN PAKET UJIAN TAB
     function renderPaketTab(packages, questions) {
         // Filter packages based on selected filters
         const filteredPackages = packages.filter(pkg => {
@@ -652,6 +916,7 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
     function attachGlobalListeners() {
         document.getElementById('admin-tab-siswa')?.addEventListener('click', () => { activeTab = 'siswa'; renderView(); });
         document.getElementById('admin-tab-soal')?.addEventListener('click', () => { activeTab = 'soal'; renderView(); });
+        document.getElementById('admin-tab-materi')?.addEventListener('click', () => { activeTab = 'materi'; renderView(); });
         document.getElementById('admin-tab-paket')?.addEventListener('click', () => { activeTab = 'paket'; renderView(); });
         document.getElementById('admin-tab-laporan')?.addEventListener('click', () => { activeTab = 'laporan'; renderView(); });
 
@@ -661,6 +926,91 @@ export function renderAdminDashboardPage(container, currentUser, onNavigate) {
         document.getElementById('filter-class-siswa')?.addEventListener('change', (e) => { selectedClassFilter = e.target.value; renderView(); });
         document.getElementById('filter-class-soal')?.addEventListener('change', (e) => { selectedClassFilter = e.target.value; renderView(); });
         document.getElementById('filter-subj-soal')?.addEventListener('change', (e) => { selectedSubjectFilter = e.target.value; renderView(); });
+
+        // Materi Filters
+        document.getElementById('filter-class-materi')?.addEventListener('change', (e) => { selectedMaterialClassFilter = e.target.value; renderView(); });
+        document.getElementById('filter-subj-materi')?.addEventListener('change', (e) => { selectedMaterialSubjectFilter = e.target.value; renderView(); });
+        document.getElementById('filter-status-materi')?.addEventListener('change', (e) => { selectedMaterialStatusFilter = e.target.value; renderView(); });
+
+        // Unmapped Questions Modal Triggers
+        const openUnmappedModal = () => {
+            renderManageUnmappedQuestionsModal(() => renderView());
+        };
+        document.getElementById('btn-unmapped-materi-tab')?.addEventListener('click', openUnmappedModal);
+        document.getElementById('btn-open-unmapped-modal')?.addEventListener('click', openUnmappedModal);
+
+        // Generate Wizard Triggers
+        const openGenerateWizard = () => {
+            renderGenerateMaterialWizardModal(() => {
+                activeTab = 'materi';
+                renderView();
+            });
+        };
+        document.getElementById('btn-generate-materi-wizard')?.addEventListener('click', openGenerateWizard);
+        document.getElementById('btn-soal-generate-materi')?.addEventListener('click', openGenerateWizard);
+        document.getElementById('btn-empty-generate-materi')?.addEventListener('click', openGenerateWizard);
+
+        // Add Material Manual Triggers
+        const openAddMaterialModal = () => {
+            const allQuestions = storageService.getQuestions();
+            renderMaterialModal(null, allQuestions, async (newMatData) => {
+                await storageService.saveMaterial(newMatData);
+                renderView();
+            });
+        };
+        document.getElementById('btn-add-materi-manual')?.addEventListener('click', openAddMaterialModal);
+        document.getElementById('btn-empty-add-materi')?.addEventListener('click', openAddMaterialModal);
+
+        // Edit Material
+        container.querySelectorAll('[data-edit-material]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.getAttribute('data-edit-material');
+                const mat = storageService.getMaterialById(id);
+                if (mat) {
+                    const allQuestions = storageService.getQuestions();
+                    renderMaterialModal(mat, allQuestions, async (updatedMatData) => {
+                        await storageService.saveMaterial(updatedMatData);
+                        renderView();
+                    });
+                }
+            });
+        });
+
+        // Preview Material
+        container.querySelectorAll('[data-preview-material]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.getAttribute('data-preview-material');
+                const mat = storageService.getMaterialById(id);
+                if (mat) {
+                    const matQuestions = storageService.getMaterialQuestions(id);
+                    renderMaterialPreviewModal(mat, matQuestions);
+                }
+            });
+        });
+
+        // Toggle Status Material (Publish / Unpublish)
+        container.querySelectorAll('[data-toggle-status-material]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-toggle-status-material');
+                const mat = storageService.getMaterialById(id);
+                if (mat) {
+                    const newStatus = mat.status === 'published' ? 'draft' : 'published';
+                    await storageService.setMaterialStatus(id, newStatus);
+                    renderView();
+                }
+            });
+        });
+
+        // Delete Material
+        container.querySelectorAll('[data-delete-material]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-delete-material');
+                if (confirm("Hapus materi pembelajaran ini? Soal-soal yang terhubung tidak akan terhapus.")) {
+                    await storageService.deleteMaterial(id);
+                    renderView();
+                }
+            });
+        });
 
         // Add Siswa
         document.getElementById('btn-add-siswa')?.addEventListener('click', () => {

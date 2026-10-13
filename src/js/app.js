@@ -8,6 +8,12 @@ import { renderExamMenuPage } from './pages/ExamMenuPage.js';
 import { renderExamEnginePage } from './pages/ExamEnginePage.js';
 import { renderResultPage } from './pages/ResultPage.js';
 import { renderAdminDashboardPage } from './pages/AdminDashboardPage.js';
+import { renderStudentMaterialPage } from './pages/StudentMaterialPage.js';
+import { renderStudentResultsPage } from './pages/StudentResultsPage.js';
+import { renderStudentAchievementsPage } from './pages/StudentAchievementsPage.js';
+import { renderStudentHistoryPage } from './pages/StudentHistoryPage.js';
+import { renderStudentProfilePage } from './pages/StudentProfilePage.js';
+import { renderStudentHelpPage } from './pages/StudentHelpPage.js';
 
 class App {
     constructor() {
@@ -18,6 +24,9 @@ class App {
 
     init() {
         try {
+            // Seed initial data and storage
+            storageService.init();
+
             // Check stored session
             this.currentUser = storageService.getCurrentUser();
 
@@ -58,23 +67,13 @@ class App {
         if (!appView) return;
 
         try {
-            // Render Navbar Header
+            // Render Navbar Header & Sidebar
             renderNavbar(
                 this.currentUser,
                 this.currentView,
-                (targetView) => this.navigateTo(targetView),
+                (targetView, data) => this.navigateTo(targetView, data),
                 () => this.logout()
             );
-
-            // Hide navbar during active exam session for full immersion CBT
-            const navbarContainer = document.getElementById('navbar-container');
-            if (navbarContainer) {
-                if (this.currentView === 'exam-engine') {
-                    navbarContainer.style.display = 'none';
-                } else {
-                    navbarContainer.style.display = 'block';
-                }
-            }
 
             // View Router
             switch (this.currentView) {
@@ -90,8 +89,40 @@ class App {
                     renderStudentDashboardPage(
                         appView,
                         this.currentUser,
-                        (targetView) => this.navigateTo(targetView),
+                        (targetView, data) => this.navigateTo(targetView, data),
                         (resultObj) => this.navigateTo('result-page', resultObj)
+                    );
+                    break;
+
+                case 'student-materials':
+                    if (!this.currentUser) return this.navigateTo('login');
+                    renderStudentMaterialPage(
+                        appView,
+                        this.currentUser,
+                        (targetView, data) => this.navigateTo(targetView, data),
+                        this.viewStateData?.materialId || null
+                    );
+                    break;
+
+                case 'exam-simulation':
+                    if (!this.currentUser) return this.navigateTo('login');
+                    renderExamMenuPage(
+                        appView,
+                        this.currentUser,
+                        (session) => this.navigateTo('exam-engine', session),
+                        (targetView, data) => this.navigateTo(targetView, data),
+                        { mode: 'simulasi', ...this.viewStateData }
+                    );
+                    break;
+
+                case 'exam-practice':
+                    if (!this.currentUser) return this.navigateTo('login');
+                    renderExamMenuPage(
+                        appView,
+                        this.currentUser,
+                        (session) => this.navigateTo('exam-engine', session),
+                        (targetView, data) => this.navigateTo(targetView, data),
+                        { mode: 'latihan', ...this.viewStateData }
                     );
                     break;
 
@@ -100,7 +131,9 @@ class App {
                     renderExamMenuPage(
                         appView,
                         this.currentUser,
-                        (session) => this.navigateTo('exam-engine', session)
+                        (session) => this.navigateTo('exam-engine', session),
+                        (targetView, data) => this.navigateTo(targetView, data),
+                        { mode: this.viewStateData?.mode || 'simulasi', ...this.viewStateData }
                     );
                     break;
 
@@ -118,7 +151,55 @@ class App {
                     renderResultPage(
                         appView,
                         this.viewStateData,
-                        (targetView) => this.navigateTo(targetView)
+                        (targetView, data) => this.navigateTo(targetView, data)
+                    );
+                    break;
+
+                case 'student-results':
+                    if (!this.currentUser) return this.navigateTo('login');
+                    renderStudentResultsPage(
+                        appView,
+                        this.currentUser,
+                        (targetView, data) => this.navigateTo(targetView, data),
+                        (resultObj) => this.navigateTo('result-page', resultObj)
+                    );
+                    break;
+
+                case 'student-achievements':
+                    if (!this.currentUser) return this.navigateTo('login');
+                    renderStudentAchievementsPage(
+                        appView,
+                        this.currentUser,
+                        (targetView, data) => this.navigateTo(targetView, data)
+                    );
+                    break;
+
+                case 'student-history':
+                    if (!this.currentUser) return this.navigateTo('login');
+                    renderStudentHistoryPage(
+                        appView,
+                        this.currentUser,
+                        (targetView, data) => this.navigateTo(targetView, data),
+                        (resultObj) => this.navigateTo('result-page', resultObj)
+                    );
+                    break;
+
+                case 'student-profile':
+                    if (!this.currentUser) return this.navigateTo('login');
+                    renderStudentProfilePage(
+                        appView,
+                        this.currentUser,
+                        (targetView, data) => this.navigateTo(targetView, data),
+                        (updatedUser) => { this.currentUser = updatedUser; this.render(); }
+                    );
+                    break;
+
+                case 'student-help':
+                    if (!this.currentUser) return this.navigateTo('login');
+                    renderStudentHelpPage(
+                        appView,
+                        this.currentUser,
+                        (targetView, data) => this.navigateTo(targetView, data)
                     );
                     break;
 
@@ -129,7 +210,7 @@ class App {
                     renderAdminDashboardPage(
                         appView,
                         this.currentUser,
-                        (targetView) => this.navigateTo(targetView)
+                        (targetView, data) => this.navigateTo(targetView, data)
                     );
                     break;
 
@@ -142,7 +223,7 @@ class App {
             localStorage.removeItem('tka_active_exam_v1');
             if (this.currentUser) {
                 this.currentView = this.currentUser.role === 'admin' ? 'admin-dashboard' : 'student-dashboard';
-                renderStudentDashboardPage(appView, this.currentUser, (tv) => this.navigateTo(tv), (res) => this.navigateTo('result-page', res));
+                renderStudentDashboardPage(appView, this.currentUser, (tv, dt) => this.navigateTo(tv, dt), (res) => this.navigateTo('result-page', res));
             } else {
                 this.currentView = 'login';
                 renderLoginPage(appView, (u) => { this.currentUser = u; this.navigateTo(u.role === 'admin' ? 'admin-dashboard' : 'student-dashboard'); });
@@ -152,7 +233,34 @@ class App {
 }
 
 // Bootstrap Application
-document.addEventListener('DOMContentLoaded', () => {
-    const app = new App();
-    app.init();
-});
+function startApp() {
+    try {
+        const app = new App();
+        app.init();
+    } catch (e) {
+        console.error("Critical Bootstrap Error:", e);
+        const appView = document.getElementById('app-view');
+        if (appView) {
+            appView.innerHTML = `
+                <div class="min-h-screen flex items-center justify-center p-6 bg-slate-100">
+                    <div class="p-8 max-w-md w-full bg-white rounded-3xl shadow-2xl border border-rose-200 text-center">
+                        <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-800 mb-2 font-outfit">Gagal Memuat Aplikasi</h2>
+                        <p class="text-xs text-slate-600 mb-6">${e.message || 'Terjadi kesalahan saat memuat data aplikasi.'}</p>
+                        <button onclick="localStorage.clear(); location.reload();" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-brand-500/30">
+                            Reset Cache & Muat Ulang
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startApp);
+} else {
+    startApp();
+}

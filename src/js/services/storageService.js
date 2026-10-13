@@ -2,6 +2,7 @@
 
 import { STORAGE_KEYS, DEFAULT_ADMIN } from '../config/constants.js';
 import { INITIAL_STUDENTS, INITIAL_QUESTIONS, INITIAL_PACKAGES, INITIAL_RESULTS } from '../data/initialData.js';
+import { extractYouTubeVideoId } from './youtubeService.js';
 
 export const storageService = {
     init() {
@@ -96,24 +97,29 @@ export const storageService = {
             // 2. Sync Questions
             if (questionsRes.ok) {
                 const dbQuestions = await questionsRes.json();
-                if (Array.isArray(dbQuestions) && dbQuestions.length > 0) {
-                    localStorage.setItem(STORAGE_KEYS.QUESTIONS, JSON.stringify(dbQuestions));
-                } else {
+                if (Array.isArray(dbQuestions)) {
+                    const dbQIdSet = new Set(dbQuestions.map(q => q.id));
                     const localQuestions = this.getQuestions();
+                    
                     for (const q of localQuestions) {
-                        await fetch('/api/questions', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(q)
-                        }).catch(() => {});
+                        if (!dbQIdSet.has(q.id)) {
+                            dbQuestions.push(q);
+                            await fetch('/api/questions', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(q)
+                            }).catch(() => {});
+                        }
                     }
+                    localStorage.setItem(STORAGE_KEYS.QUESTIONS, JSON.stringify(dbQuestions));
                 }
             }
 
             // 3. Sync Packages
             if (packagesRes.ok) {
                 const dbPackages = await packagesRes.json();
-                if (Array.isArray(dbPackages) && dbPackages.length > 0) {
+                if (Array.isArray(dbPackages)) {
+                    const localPackages = this.getPackages();
                     const formatted = dbPackages.map(p => {
                         let qIds = p.questionIds || p.question_ids || [];
                         if (typeof qIds === 'string') {
@@ -132,16 +138,35 @@ export const storageService = {
                             showResultsToStudent: p.showResultsToStudent !== false && p.show_results_to_student != 0
                         };
                     });
-                    localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(formatted));
-                } else {
-                    const localPackages = this.getPackages();
-                    for (const p of localPackages) {
-                        await fetch('/api/packages', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(p)
-                        }).catch(() => {});
+
+                    for (const lp of localPackages) {
+                        const existingInDb = formatted.find(p => p.id === lp.id);
+                        if (!existingInDb) {
+                            formatted.push(lp);
+                            await fetch('/api/packages', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(lp)
+                            }).catch(() => {});
+                        } else {
+                            const dbQIds = new Set(existingInDb.questionIds || []);
+                            let needUpdate = false;
+                            (lp.questionIds || []).forEach(qid => {
+                                if (!dbQIds.has(qid)) {
+                                    existingInDb.questionIds.push(qid);
+                                    needUpdate = true;
+                                }
+                            });
+                            if (needUpdate) {
+                                await fetch('/api/packages', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(existingInDb)
+                                }).catch(() => {});
+                            }
+                        }
                     }
+                    localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(formatted));
                 }
             }
 
@@ -159,6 +184,41 @@ export const storageService = {
                             body: JSON.stringify(r)
                         }).catch(() => {});
                     }
+                }
+            }
+
+            // 5. Sync Materials & Material Questions
+            const materialsRes = await fetch('/api/materials').catch(() => null);
+            if (materialsRes && materialsRes.ok) {
+                const dbMaterials = await materialsRes.json();
+                if (Array.isArray(dbMaterials)) {
+                    const localMaterials = this.getMaterials();
+                    const dbMatMap = new Map(dbMaterials.map(m => [m.id, m]));
+
+                    for (const lm of localMaterials) {
+                        if (!dbMatMap.has(lm.id)) {
+                            dbMaterials.push(lm);
+                            await fetch('/api/materials', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(lm)
+                            }).catch(() => {});
+                        }
+                    }
+                    localStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(dbMaterials));
+
+                    const mQuestions = [];
+                    dbMaterials.forEach(m => {
+                        (m.questionIds || []).forEach(qid => {
+                            mQuestions.push({
+                                id: `mq-${m.id}-${qid}`,
+                                material_id: m.id,
+                                question_id: qid,
+                                created_at: m.created_at || new Date().toISOString()
+                            });
+                        });
+                    });
+                    localStorage.setItem(STORAGE_KEYS.MATERIAL_QUESTIONS, JSON.stringify(mQuestions));
                 }
             }
         } catch (e) {
@@ -626,6 +686,490 @@ export const storageService = {
                 });
             } catch (err) {}
         }
+    },
+
+    // --- MATERIALS & MATERIAL_QUESTIONS CRUD ---
+    getMaterials(filters = {}) {
+        try {
+            let list = JSON.parse(localStorage.getItem(STORAGE_KEYS.MATERIALS)) || [];
+            if (filters.kelas && filters.kelas !== 'all') {
+                list = list.filter(m => m.kelas === filters.kelas);
+            }
+            if (filters.subject && filters.subject !== 'all') {
+                list = list.filter(m => m.subject === filters.subject);
+            }
+            if (filters.status && filters.status !== 'all') {
+                list = list.filter(m => m.status === filters.status);
+            }
+            return list.sort((a, b) => (a.order_number || 0) - (b.order_number || 0) || new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        } catch (e) {
+            return [];
+        }
+    },
+
+    getMaterialById(id) {
+        const list = this.getMaterials();
+        const mat = list.find(m => m.id === id);
+        if (!mat) return null;
+
+        const mappings = this.getMaterialQuestionMappings();
+        const mappedQIds = mappings.filter(mq => mq.material_id === id).map(mq => mq.question_id);
+        const combinedQIds = Array.from(new Set([...(mat.questionIds || []), ...mappedQIds]));
+        return { ...mat, questionIds: combinedQIds };
+    },
+
+    getNextMaterialOrderNumber(kelas, subject) {
+        try {
+            const materials = this.getMaterials();
+            const matching = materials.filter(m => (!kelas || m.kelas === kelas) && (!subject || m.subject === subject));
+            if (matching.length === 0) return 1;
+            const maxOrder = Math.max(...matching.map(m => parseInt(m.order_number || m.orderNumber || 0, 10)));
+            return (maxOrder > 0 ? maxOrder : matching.length) + 1;
+        } catch (e) {
+            return 1;
+        }
+    },
+
+    getMaterialQuestionMappings() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEYS.MATERIAL_QUESTIONS)) || [];
+        } catch (e) {
+            return [];
+        }
+    },
+
+    async saveMaterial(materialData, questionIds = null) {
+        let list = this.getMaterials();
+        const now = new Date().toISOString();
+        const id = materialData.id || ('mat-' + Date.now());
+        
+        let qIds = questionIds !== null ? questionIds : (materialData.questionIds || []);
+        if (typeof qIds === 'string') {
+            try { qIds = JSON.parse(qIds); } catch (e) { qIds = []; }
+        }
+
+        const vUrl = (materialData.video_url || materialData.videoUrl || '').trim();
+        const vId = (materialData.video_id || materialData.videoId || (vUrl ? extractYouTubeVideoId(vUrl) : '') || '').trim();
+
+        const formatted = {
+            id,
+            kelas: materialData.kelas || 'Kelas 2',
+            subject: materialData.subject || 'fiqih',
+            title: materialData.title || 'Materi Baru',
+            description: materialData.description || '',
+            content: materialData.content || '',
+            learning_objectives: materialData.learning_objectives || materialData.learningObjectives || '',
+            learningObjectives: materialData.learning_objectives || materialData.learningObjectives || '',
+            summary: materialData.summary || '',
+            video_url: vUrl,
+            videoUrl: vUrl,
+            video_id: vId,
+            videoId: vId,
+            order_number: parseInt(materialData.order_number || materialData.orderNumber || 0, 10),
+            orderNumber: parseInt(materialData.order_number || materialData.orderNumber || 0, 10),
+            status: materialData.status || 'draft',
+            created_at: materialData.created_at || now,
+            updated_at: now,
+            questionIds: qIds,
+            question_count: qIds.length
+        };
+
+        const existingIdx = list.findIndex(m => m.id === id);
+        if (existingIdx >= 0) {
+            list[existingIdx] = formatted;
+        } else {
+            list.unshift(formatted);
+        }
+        localStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(list));
+
+        // Update local material_questions mappings
+        let mappings = this.getMaterialQuestionMappings().filter(mq => mq.material_id !== id);
+        qIds.forEach(qid => {
+            mappings.push({
+                id: `mq-${id}-${qid}`,
+                material_id: id,
+                question_id: qid,
+                created_at: now
+            });
+        });
+        localStorage.setItem(STORAGE_KEYS.MATERIAL_QUESTIONS, JSON.stringify(mappings));
+
+        // Sync to MySQL API
+        try {
+            await fetch('/api/materials', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formatted)
+            });
+        } catch (e) {}
+
+        return formatted;
+    },
+
+    async deleteMaterial(id) {
+        let list = this.getMaterials().filter(m => m.id !== id);
+        localStorage.setItem(STORAGE_KEYS.MATERIALS, JSON.stringify(list));
+
+        let mappings = this.getMaterialQuestionMappings().filter(mq => mq.material_id !== id);
+        localStorage.setItem(STORAGE_KEYS.MATERIAL_QUESTIONS, JSON.stringify(mappings));
+
+        // Sync deletion to MySQL API
+        try {
+            const res = await fetch(`/api/materials/${encodeURIComponent(id)}`, { method: 'DELETE' });
+            if (!res.ok) {
+                await fetch('/api/materials', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+            }
+        } catch (e) {
+            try {
+                await fetch('/api/materials', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id })
+                });
+            } catch (err) {}
+        }
+    },
+
+    async setMaterialStatus(id, status) {
+        const mat = this.getMaterialById(id);
+        if (!mat) return null;
+        mat.status = status;
+        mat.updated_at = new Date().toISOString();
+        return await this.saveMaterial(mat);
+    },
+
+    async publishMaterial(id) {
+        return await this.setMaterialStatus(id, 'published');
+    },
+
+    async unpublishMaterial(id) {
+        return await this.setMaterialStatus(id, 'draft');
+    },
+
+    getMaterialQuestions(materialId) {
+        const mappings = this.getMaterialQuestionMappings().filter(mq => mq.material_id === materialId);
+        const qIdSet = new Set(mappings.map(mq => mq.question_id));
+        const allQuestions = this.getQuestions();
+        return allQuestions.filter(q => qIdSet.has(q.id));
+    },
+
+    getMaterialsForQuestion(questionId) {
+        const mappings = this.getMaterialQuestionMappings().filter(mq => mq.question_id === questionId);
+        const matIdSet = new Set(mappings.map(mq => mq.material_id));
+        const allMaterials = this.getMaterials();
+        return allMaterials.filter(m => matIdSet.has(m.id));
+    },
+
+    getMaterialsByQuestionIds(questionIds = []) {
+        if (!Array.isArray(questionIds) || questionIds.length === 0) return [];
+        const qIdSet = new Set(questionIds);
+        const mappings = this.getMaterialQuestionMappings().filter(mq => qIdSet.has(mq.question_id));
+        const matIdCountMap = {};
+        mappings.forEach(mq => {
+            matIdCountMap[mq.material_id] = (matIdCountMap[mq.material_id] || 0) + 1;
+        });
+
+        const allMaterials = this.getMaterials();
+        const results = [];
+        for (const [matId, count] of Object.entries(matIdCountMap)) {
+            const mat = allMaterials.find(m => m.id === matId);
+            if (mat) {
+                results.push({
+                    ...mat,
+                    matchedQuestionCount: count
+                });
+            }
+        }
+        return results.sort((a, b) => b.matchedQuestionCount - a.matchedQuestionCount);
+    },
+
+    getUnmappedQuestions(kelas = null, subject = null) {
+        const mappings = this.getMaterialQuestionMappings();
+        const mappedQIdSet = new Set(mappings.map(mq => mq.question_id));
+        let questions = this.getQuestions().filter(q => !mappedQIdSet.has(q.id));
+        if (kelas && kelas !== 'all') {
+            questions = questions.filter(q => q.kelas === kelas);
+        }
+        if (subject && subject !== 'all') {
+            questions = questions.filter(q => q.subject === subject);
+        }
+        return questions;
+    },
+
+    async mapQuestionsToMaterial(materialId, questionIds = []) {
+        if (!materialId || !questionIds || questionIds.length === 0) return;
+        const mat = this.getMaterialById(materialId);
+        if (!mat) return;
+        const currentQIds = new Set(mat.questionIds || []);
+        questionIds.forEach(id => currentQIds.add(id));
+        mat.questionIds = Array.from(currentQIds);
+        await this.saveMaterial(mat, mat.questionIds);
+    },
+
+    async unmapQuestionFromMaterial(materialId, questionId) {
+        if (!materialId || !questionId) return;
+        const mat = this.getMaterialById(materialId);
+        if (!mat) return;
+        const filteredQIds = (mat.questionIds || []).filter(id => id !== questionId);
+        mat.questionIds = filteredQIds;
+        await this.saveMaterial(mat, filteredQIds);
+    },
+
+    // --- ALIAS FOR CBT EXAM SESSION ---
+    createExamSession(pkg, student) {
+        return this.startExamSession(pkg, student);
+    },
+
+    // --- GAMIFICATION & LEARNING PROGRESS ENGINE ---
+    getStudiedMaterials(studentId) {
+        try {
+            const key = `tka_studied_materials_${studentId}`;
+            return JSON.parse(localStorage.getItem(key)) || [];
+        } catch (e) {
+            return [];
+        }
+    },
+
+    markMaterialStudied(studentId, materialId) {
+        if (!studentId || !materialId) return;
+        const studied = this.getStudiedMaterials(studentId);
+        if (!studied.includes(materialId)) {
+            studied.push(materialId);
+            const key = `tka_studied_materials_${studentId}`;
+            localStorage.setItem(key, JSON.stringify(studied));
+        }
+    },
+
+    getStudentGamification(studentId) {
+        const results = this.getResultsByStudent(studentId);
+        const studied = this.getStudiedMaterials(studentId);
+
+        let totalXp = 0;
+        let totalStars = 0;
+        let totalScoreSum = 0;
+        let passedCount = 0;
+        let perfectScoreCount = 0;
+
+        // Calculate XP from actual exam results
+        results.forEach(res => {
+            const score = Number(res.score) || 0;
+            const kkm = Number(res.kkm) || 70;
+            totalScoreSum += score;
+
+            // Base XP for finishing
+            let examXp = 50;
+            // Score scaled XP
+            examXp += score;
+            // KKM Pass bonus
+            if (score >= kkm || res.status === 'LULUS') {
+                examXp += 30;
+                passedCount++;
+            }
+            // Perfect score bonus
+            if (score === 100) {
+                examXp += 50;
+                perfectScoreCount++;
+            }
+
+            totalXp += examXp;
+
+            // Stars
+            if (score >= 90) totalStars += 3;
+            else if (score >= 75) totalStars += 2;
+            else if (score >= 60) totalStars += 1;
+        });
+
+        // XP from studied materials (+25 XP per material)
+        totalXp += (studied.length * 25);
+
+        const totalExams = results.length;
+        const avgScore = totalExams > 0 ? Math.round(totalScoreSum / totalExams) : 0;
+
+        // Level Hierarchy
+        const levels = [
+            { level: 1, title: 'Pemula Hebat', minXp: 0, maxXp: 150, badgeIcon: 'fa-seedling', color: 'emerald' },
+            { level: 2, title: 'Penjelajah Cilik', minXp: 151, maxXp: 350, badgeIcon: 'fa-compass', color: 'blue' },
+            { level: 3, title: 'Ksatria Belajar', minXp: 351, maxXp: 650, badgeIcon: 'fa-shield-halved', color: 'purple' },
+            { level: 4, title: 'Bintang Kelas', minXp: 651, maxXp: 1050, badgeIcon: 'fa-star', color: 'amber' },
+            { level: 5, title: 'Juara Akademik', minXp: 1051, maxXp: 1600, badgeIcon: 'fa-trophy', color: 'rose' },
+            { level: 6, title: 'Master TKA Smart', minXp: 1601, maxXp: 99999, badgeIcon: 'fa-crown', color: 'yellow' }
+        ];
+
+        let currentLevel = levels[0];
+        for (const lvl of levels) {
+            if (totalXp >= lvl.minXp) {
+                currentLevel = lvl;
+            }
+        }
+
+        // Progress percentage to next level
+        let progressPercent = 100;
+        let xpNeededForNext = 0;
+        if (currentLevel.level < 6) {
+            const levelRange = currentLevel.maxXp - currentLevel.minXp;
+            const xpInCurrentLevel = Math.max(0, totalXp - currentLevel.minXp);
+            progressPercent = Math.min(100, Math.max(5, Math.round((xpInCurrentLevel / levelRange) * 100)));
+            xpNeededForNext = Math.max(0, currentLevel.maxXp - totalXp);
+        }
+
+        return {
+            totalXp,
+            totalStars,
+            level: currentLevel.level,
+            levelTitle: currentLevel.title,
+            levelIcon: currentLevel.badgeIcon,
+            levelColor: currentLevel.color,
+            progressPercent,
+            xpNeededForNext,
+            maxXp: currentLevel.maxXp,
+            totalExams,
+            avgScore,
+            passedCount,
+            perfectScoreCount,
+            studiedMaterialsCount: studied.length
+        };
+    },
+
+    getStudentBadges(studentId) {
+        const gamify = this.getStudentGamification(studentId);
+        const results = this.getResultsByStudent(studentId);
+        const mathResults = results.filter(r => r.subject === 'matematika');
+        const hasHighMath = mathResults.some(r => r.score >= 85);
+
+        return [
+            {
+                id: 'badge-1',
+                title: 'Langkah Pertama',
+                description: 'Selesaikan latihan CBT pertamamu',
+                icon: 'fa-flag-checkered',
+                category: 'Memulai',
+                color: 'blue',
+                unlocked: gamify.totalExams >= 1,
+                progressText: `${Math.min(1, gamify.totalExams)} / 1 Ujian Selesai`
+            },
+            {
+                id: 'badge-2',
+                title: 'Jagoan Matematika',
+                description: 'Raih nilai ≥ 85 pada latihan Matematika',
+                icon: 'fa-calculator',
+                category: 'Mata Pelajaran',
+                color: 'emerald',
+                unlocked: hasHighMath,
+                progressText: hasHighMath ? 'Tercapai! Nilai ≥ 85' : 'Raih skor ≥ 85 di Matematika'
+            },
+            {
+                id: 'badge-3',
+                title: 'Kutu Buku Cilik',
+                description: 'Pelajari minimal 1 modul materi pembelajaran',
+                icon: 'fa-book-open-reader',
+                category: 'Materi',
+                color: 'indigo',
+                unlocked: gamify.studiedMaterialsCount >= 1,
+                progressText: `${Math.min(1, gamify.studiedMaterialsCount)} / 1 Materi Dipelajari`
+            },
+            {
+                id: 'badge-4',
+                title: 'Lulus KKM',
+                description: 'Selesaikan ujian dengan status LULUS KKM',
+                icon: 'fa-circle-check',
+                category: 'Prestasi',
+                color: 'emerald',
+                unlocked: gamify.passedCount >= 1,
+                progressText: `${Math.min(1, gamify.passedCount)} / 1 Ujian Lulus`
+            },
+            {
+                id: 'badge-5',
+                title: 'Nilai Sempurna',
+                description: 'Raih skor 100 sempurna pada ujian CBT',
+                icon: 'fa-star',
+                category: 'Prestasi',
+                color: 'amber',
+                unlocked: gamify.perfectScoreCount >= 1,
+                progressText: gamify.perfectScoreCount >= 1 ? 'Hebat! Skor 100 diraih' : 'Raih nilai 100 di 1 ujian'
+            },
+            {
+                id: 'badge-6',
+                title: 'Pejuang Belajar',
+                description: 'Selesaikan minimal 5 paket latihan atau simulasi',
+                icon: 'fa-fire-flame-curved',
+                category: 'Konsistensi',
+                color: 'rose',
+                unlocked: gamify.totalExams >= 5,
+                progressText: `${Math.min(5, gamify.totalExams)} / 5 Ujian Selesai`
+            },
+            {
+                id: 'badge-7',
+                title: 'Penjelajah Materi',
+                description: 'Pelajari minimal 3 modul materi pembelajaran',
+                icon: 'fa-graduation-cap',
+                category: 'Materi',
+                color: 'purple',
+                unlocked: gamify.studiedMaterialsCount >= 3,
+                progressText: `${Math.min(3, gamify.studiedMaterialsCount)} / 3 Materi Dipelajari`
+            },
+            {
+                id: 'badge-8',
+                title: 'Bintang Kelas',
+                description: 'Kumpulkan minimal 500 XP belajar',
+                icon: 'fa-trophy',
+                category: 'Level',
+                color: 'gold',
+                unlocked: gamify.totalXp >= 500,
+                progressText: `${Math.min(500, gamify.totalXp)} / 500 XP`
+            }
+        ];
+    },
+
+    getDailyMissions(studentId) {
+        const gamify = this.getStudentGamification(studentId);
+        const results = this.getResultsByStudent(studentId);
+        
+        const today = new Date().toDateString();
+        const examsToday = results.filter(r => new Date(r.completedAt).toDateString() === today);
+        const passedToday = examsToday.some(r => r.status === 'LULUS');
+
+        return [
+            {
+                id: 'mission-1',
+                title: 'Kerjakan 1 Paket Latihan Mandiri',
+                description: 'Latih kemampuanmu mengerjakan soal CBT dengan santai',
+                rewardXp: 50,
+                icon: 'fa-pen-to-square',
+                completed: examsToday.length >= 1 || results.length >= 1,
+                progress: examsToday.length >= 1 || results.length >= 1 ? 1 : 0,
+                total: 1,
+                actionRoute: 'exam-practice',
+                actionLabel: 'Latihan Soal'
+            },
+            {
+                id: 'mission-2',
+                title: 'Pelajari 1 Modul Materi Pembelajaran',
+                description: 'Baca ringkasan dan konsep penting mata pelajaran',
+                rewardXp: 30,
+                icon: 'fa-book-bookmark',
+                completed: gamify.studiedMaterialsCount >= 1,
+                progress: Math.min(1, gamify.studiedMaterialsCount),
+                total: 1,
+                actionRoute: 'student-materials',
+                actionLabel: 'Buka Materi'
+            },
+            {
+                id: 'mission-3',
+                title: 'Ikuti Simulasi Ujian & Lulus (≥ KKM)',
+                description: 'Tunjukkan kesiapan CBT resmi dengan melampaui batas KKM',
+                rewardXp: 75,
+                icon: 'fa-award',
+                completed: passedToday || gamify.passedCount >= 1,
+                progress: passedToday || gamify.passedCount >= 1 ? 1 : 0,
+                total: 1,
+                actionRoute: 'exam-simulation',
+                actionLabel: 'Simulasi Ujian'
+            }
+        ];
     }
 };
 
